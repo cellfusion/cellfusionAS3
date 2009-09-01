@@ -1,0 +1,3 @@
+[submodule "libs/AbstractUI"]
+	path = libs/AbstractUI
+	url = git@github.com:cellfusion/abstractui.git

@@ -1,4 +1,5 @@
 .as3_classpath
 .settings
 .project
-libs
+libs/TweensyOriginalCS4.swc
+libs/Thread
