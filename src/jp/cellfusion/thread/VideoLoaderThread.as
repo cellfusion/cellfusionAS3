@@ -41,7 +41,7 @@ package jp.cellfusion.thread
 		
 		private function events():void
 		{
-			event(_player, VideoEvent.COMPLETE, completeHandler);			event(_player, VideoProgressEvent.PROGRESS, progressHandler);			event(_player, IOErrorEvent.IO_ERROR, ioErrorHandler);		}
+			event(_player, VideoEvent.LOAD_COMPLETE, completeHandler);			event(_player, VideoProgressEvent.PROGRESS, progressHandler);			event(_player, IOErrorEvent.IO_ERROR, ioErrorHandler);		}
 		
 		private function progressHandler(event:VideoProgressEvent):void
 		{
