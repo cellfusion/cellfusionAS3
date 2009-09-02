@@ -120,9 +120,19 @@ package jp.cellfusion.sound
 			snd.paused = false;
 		}
 
-		public function stopSound(name:String):void
+		public function stopSound(name:String, fade:Boolean = false):void
 		{
 			var snd:SoundObject = _soundsDict[name];
+			
+			if (fade) {
+				fadeSound(name, 0, 1, stopSoundCompleted, snd);
+			} else {
+				stopSoundCompleted(snd);
+			}
+		}
+		
+		private function stopSoundCompleted(snd:SoundObject):void
+		{
 			snd.paused = true;
 			snd.channel.stop();
 			snd.position = snd.channel.position;
@@ -184,12 +194,12 @@ package jp.cellfusion.sound
 			}
 		}
 
-		public function fadeSound(name:String, targVolume:Number = 0, fadeLength:Number = 1):void
+		public function fadeSound(name:String, targVolume:Number = 0, fadeLength:Number = 1, onComplete:Function = null, ...onCompleteArgs:Array):void
 		{
 			var s:SoundObject = _soundsDict[name];
 			var fadeChannel:SoundChannel = s.channel;
 			
-			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, None.easeNone, 0, fadeChannel);
+			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, None.easeNone, 0, fadeChannel, onComplete, onCompleteArgs);
 		}
 
 		public function muteAllSounds(fade:Boolean = false, fadeLength:Number = 1):void
