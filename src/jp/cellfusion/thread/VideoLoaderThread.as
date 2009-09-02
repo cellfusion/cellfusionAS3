@@ -40,11 +40,11 @@ package jp.cellfusion.thread
 			// ロード開始
 			_player.load(_request);
 		}
-
+		
 		private function events():void
 		{
 			event(_player, VideoEvent.LOAD_COMPLETE, completeHandler);			event(_player, VideoProgressEvent.PROGRESS, progressHandler);			event(_player, IOErrorEvent.IO_ERROR, ioErrorHandler);		}
-
+		
 		private function progressHandler(event:VideoProgressEvent):void
 		{
 			// 必要であれば開始を通知
@@ -59,7 +59,7 @@ package jp.cellfusion.thread
 			// 再びイベント待ち
 			events();
 		}
-
+		
 		private function notifyStartIfNeeded(total:Number):void
 		{
 			if (!_progress.isStarted) {
@@ -106,12 +106,12 @@ package jp.cellfusion.thread
 		{
 			return _request;
 		}
-
+		
 		public function get player():IVideoPlayer
 		{
 			return _player;
 		}
-
+		
 		public function get progress():IProgress
 		{
 			return _progress;
