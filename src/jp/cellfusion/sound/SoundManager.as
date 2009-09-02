@@ -120,12 +120,22 @@ package jp.cellfusion.sound
 			snd.paused = false;
 		}
 
-		public function stopSound(name:String):void
+		public function stopSound(name:String, fade:Boolean = false):void
 		{
 			var snd:SoundObject = _soundsDict[name];
-			snd.paused = true;
-			snd.channel.stop();
+			
+			if (fade) {
+				fadeSound(name, 0, 1, stopSoundComplete, snd);
+			} else {
+				stopSoundComplete(snd);
+			}
+		}
+		
+		private function stopSoundComplete(snd:SoundObject):void
+		{
 			snd.position = snd.channel.position;
+			snd.channel.stop();
+			snd.paused = true;
 		}
 
 		public function pauseSound(name:String):void
@@ -184,14 +194,14 @@ package jp.cellfusion.sound
 			}
 		}
 
-		public function fadeSound(name:String, targVolume:Number = 0, fadeLength:Number = 1):void
+		public function fadeSound(name:String, targVolume:Number = 0, fadeLength:Number = 1, onComplete:Function = null, ...onCompleteArgs:Array):void
 		{
 			var s:SoundObject = _soundsDict[name];
 			var fadeChannel:SoundChannel = s.channel;
 			
-			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, None.easeNone, 0, fadeChannel);
+			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, None.easeNone, 0, fadeChannel, onComplete, onCompleteArgs);
 		}
-
+		
 		public function muteAllSounds(fade:Boolean = false, fadeLength:Number = 1):void
 		{
 			for each (var s:SoundObject in _sounds) {
@@ -200,12 +210,13 @@ package jp.cellfusion.sound
 //				}
 				
 				var id:String = s.name;
-               
-				//				setSoundVolume(id, 0);
-				if (fade) {
-					fadeSound(id, 0, fadeLength);
-				} else {
-					setSoundVolume(id, 0);
+				if (!_soundsDict[id].paused) {
+	               
+					if (fade) {
+						fadeSound(id, 0, fadeLength);
+					} else {
+						setSoundVolume(id, 0);
+					}
 				}
 			}
 			
@@ -230,12 +241,12 @@ package jp.cellfusion.sound
 				var id:String = s.name;
 				var snd:Object = _soundsDict[id];
 				
-				trace('id:'+id, 'volume:'+snd.volume);
-				
-				if (fade) {
-					fadeSound(id, snd.volume, fadeLength);
-				} else {
-					setSoundVolume(id, snd.volume);
+				if (!_soundsDict[id].paused) {
+					if (fade) {
+						fadeSound(id, snd.volume, fadeLength);
+					} else {
+						setSoundVolume(id, snd.volume);
+					}
 				}
 			}
 			
