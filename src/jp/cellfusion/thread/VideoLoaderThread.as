@@ -1,9 +1,9 @@
 package jp.cellfusion.thread 
 {
+	import jp.cellfusion.abstractUI.events.VideoEvent;
+	import jp.cellfusion.abstractUI.events.VideoProgressEvent;
 	import jp.cellfusion.abstractUI.video.IVideoPlayer;
 	import jp.cellfusion.abstractUI.video.SimpleVideoPlayer;
-	import jp.cellfusion.abstractUI.video.VideoEvent;
-	import jp.cellfusion.abstractUI.video.VideoProgressEvent;
 
 	import org.libspark.thread.Thread;
 	import org.libspark.thread.utils.IProgress;
