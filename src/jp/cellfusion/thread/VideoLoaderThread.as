@@ -60,9 +60,9 @@ package jp.cellfusion.thread
 			events();
 		}
 		
-		private function notifyStartIfNeeded(total:Number):void
+		private function notifyStartIfNeeded(total:uint):void
 		{
-			if (!_progress.isStarted) {
+			if (total != uint.MAX_VALUE) {
 				_progress.start(total);
 			}
 		}

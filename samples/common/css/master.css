@@ -1,0 +1,26 @@
+@import url("layout.css");
+
+/*\*/ a { overflow:hidden; }/**/
+
+/* IE5 Mac only styles
+----------------------------------------*/
+
+/*\*//*/
+  @import "ie5mac.css";
+/**/
+
+
+/* IE5 Win only styles
+----------------------------------------*/
+
+@media tty {
+	i{content:"\";/*" "*/}} @import 'ie50win.css'; {;}/*";}
+}/* */
+
+
+/* IE5.5 Win only styles
+----------------------------------------*/
+
+@media tty {
+	i{content:"\";/*" "*/}}@m; @import 'ie55win.css'; /*";}
+}/* */

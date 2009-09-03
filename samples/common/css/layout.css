@@ -1,0 +1,42 @@
+/**
+ * @author Mk-10 a.k.a. cellfusion
+ */
+
+.clearfix:after {
+	content: "";
+	display: block;
+	height: 0px;
+	clear: both;
+	visibility: hidden;
+}
+.clearfix {
+	display: inline-table;
+}
+/* \*/
+* html .clearfix { height: 1%; }
+.clearfix { display: block; }
+/* */
+
+img {
+	border: none;
+}
+
+table {
+	border-collapse:collapse;
+}
+
+a, a:link, a:hover, a:visited {
+	text-decoration: none;
+}
+
+hr {
+	display: none;
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	color: #FFFFFF;
+	font: 0.75em sans-serif;
+	line-height: 1.4em;
+}
