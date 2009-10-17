@@ -101,6 +101,7 @@ package jp.cellfusion.sound
 		public function playSound(name:String, volume:Number = 1, startTime:Number = 0, loops:int = 0, fade:Boolean = false):void
 		{
 			var snd:SoundObject = _soundsDict[name];
+			if (!snd) { return; }
 			snd.volume = volume;
 			snd.startTime = startTime;
 			snd.loops = loops;
@@ -123,6 +124,7 @@ package jp.cellfusion.sound
 		public function stopSound(name:String, fade:Boolean = false):void
 		{
 			var snd:SoundObject = _soundsDict[name];
+			if (!snd) { return; }
 			
 			if (fade) {
 				fadeSound(name, 0, 1, stopSoundCompleted, snd);
@@ -141,6 +143,7 @@ package jp.cellfusion.sound
 		public function pauseSound(name:String):void
 		{
 			var snd:SoundObject = _soundsDict[name];
+			if (!snd) { return; }
 			snd.paused = true;
 			snd.position = snd.channel.position;
 			snd.channel.stop();
@@ -197,6 +200,8 @@ package jp.cellfusion.sound
 		public function fadeSound(name:String, targVolume:Number = 0, fadeLength:Number = 1, onComplete:Function = null, ...onCompleteArgs:Array):void
 		{
 			var s:SoundObject = _soundsDict[name];
+			if (!s) { return; }
+			
 			var fadeChannel:SoundChannel = s.channel;
 			
 			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, None.easeNone, 0, fadeChannel, onComplete, onCompleteArgs);
@@ -240,7 +245,8 @@ package jp.cellfusion.sound
 				var id:String = s.name;
 				var snd:Object = _soundsDict[id];
 				
-				trace('id:'+id, 'volume:'+snd.volume);
+				
+//				trace('id:'+id, 'volume:'+snd.volume);
 				
 				if (fade) {
 					fadeSound(id, snd.volume, fadeLength);
@@ -263,6 +269,8 @@ package jp.cellfusion.sound
 		public function setSoundVolume(name:String, volume:Number):void
 		{
 			var snd:Object = _soundsDict[name];
+			if (!snd) { return; }
+			
 			var curTransform:SoundTransform = snd.channel.soundTransform;
 			curTransform.volume = volume;
 			snd.channel.soundTransform = curTransform;
@@ -283,7 +291,12 @@ package jp.cellfusion.sound
 			return _soundsDict[name].sound.length;
 		}
 
-		public function getSoundObject(name:String):Sound
+		public function getSoundObject(name:String):Object
+		{
+			return _soundsDict[name];
+		}
+		
+		public function getSound(name:String):Sound
 		{
 			return _soundsDict[name].sound;
 		}
