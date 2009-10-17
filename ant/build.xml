@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Ant Build">
+	
+	<property name="src.dir" value="${basedir}/../src"/>
+	<property name="deploy.dir" value="${basedir}/../bin"/>
+	<property name="main.class" value="Main.as"/>
+	<property name="target.swf" value="Main.swf"/>
+
+	<property name="browser.url" value="http://localhost:8888/...."/>
+	<property name="project.name" value="Demo"/>
+	
+	<property name="swf.height" value="600"/>
+	<property name="swf.width" value="800"/>
+	<property name="bg.color" value="0xfff000"/>
+
+	
+	<target name="reset fcsh">
+		<echo>Resetting fcsh...</echo>
+		<fdt.launch.resetFCSH/>
+		<echo>Complete</echo>
+	</target>
+	
+	<target name="AS3Library_swc_create">
+		<fdt.launch.library projectname="AS3Library" target="${basedir}/../bin/AS3Library.swc" />
+	</target>
+	
+	<target name="myTarget">
+		<echo>Compiling SWF...</echo>
+		<fdt.launch.application
+			projectname="${project.name}"
+			mainclass="${src.dir}/${main.class}"
+			target="${deploy.dir}/${target.swf}"
+			debug="true"
+			compilerarguments="-default-size ${swf.width} ${swf.height} -default-frame-rate 31 -default-background-color ${bg.color}"
+		/>
+		<echo>Complete</echo>
+		<fdt.startDebugger projectname="${project.name}"/>
+		<fdt.browse url="${browser.url}"/>
+	</target>
+</project>
