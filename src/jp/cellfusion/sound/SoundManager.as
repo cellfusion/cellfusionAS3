@@ -22,7 +22,6 @@ package jp.cellfusion.sound
 		private const LIBRARY:String = "library";
 		private const EXTERNAL:String = "external";
 		private var _isMute:Boolean = false;
-		private var _tg:TweensyGroup;
 
 		public static function get instance():SoundManager 
 		{
@@ -41,7 +40,6 @@ package jp.cellfusion.sound
         	
 			_soundsDict = new Dictionary(true);
 			_sounds = new Array();
-			_tg = new TweensyGroup();
 		}
 
 		public function addLibrarySound(linkageID:Class, name:String):Boolean
@@ -207,8 +205,7 @@ package jp.cellfusion.sound
 			
 			var fadeChannel:SoundChannel = s.channel;
 			
-			_tg.soundTransformTo({volume:targVolume}, fadeChannel.soundTransform, fadeLength, Linear.easeNone);
-//			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, None.easeNone, 0, fadeChannel, onComplete, onCompleteArgs);
+			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, Linear.easeNone, 0, fadeChannel, onComplete, onCompleteArgs);
 		}
 
 		public function muteAllSounds(fade:Boolean = false, fadeLength:Number = 1):void
@@ -229,8 +226,7 @@ package jp.cellfusion.sound
 			}
 			
 			if (fade) {
-				_tg.soundTransformTo({volume:0}, SoundMixer.soundTransform, fadeLength, Linear.easeNone);
-//				Tweensy.to(SoundMixer.soundTransform, {volume:0}, fadeLength, Linear.easeNone, 0, SoundMixer);
+				Tweensy.to(SoundMixer.soundTransform, {volume:0}, fadeLength, Linear.easeNone, 0, SoundMixer);
 			} else {
 				var curTransform:SoundTransform = SoundMixer.soundTransform;
 				curTransform.volume = 0;
@@ -261,8 +257,7 @@ package jp.cellfusion.sound
 			}
 			
 			if (fade) {
-				_tg.soundTransformTo({volume:1}, SoundMixer.soundTransform, fadeLength, Linear.easeNone);
-//				Tweensy.to(SoundMixer.soundTransform, {volume:1}, fadeLength, Linear.easeNone, 0, SoundMixer);
+				Tweensy.to(SoundMixer.soundTransform, {volume:1}, fadeLength, Linear.easeNone, 0, SoundMixer);
 			} else {
 				var curTransform:SoundTransform = SoundMixer.soundTransform;
 				curTransform.volume = 1;
