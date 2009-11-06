@@ -22,6 +22,11 @@ package jp.cellfusion.sound
 		private const LIBRARY:String = "library";
 		private const EXTERNAL:String = "external";
 		private var _isMute:Boolean = false;
+		
+		public static const STOP:uint = 0;
+		public static const PLAY:uint = 1;
+		public static const PAUSE:uint = 2;
+		public static const MUTE:uint = 3;
 
 		public static function get instance():SoundManager 
 		{
@@ -42,43 +47,54 @@ package jp.cellfusion.sound
 			_sounds = new Array();
 		}
 
-		public function addLibrarySound(linkageID:Class, name:String):Boolean
+		/**
+		 * ライブラリのサウンドを登録します
+		 * @param linkageID
+		 * @param name 呼び出す際に使用する ID
+		 */
+		public function addLibrarySound(linkageID:Class, name:String, volume:Number = 1):void
 		{
 			for each (var s:SoundObject in _sounds) {
 				if (s.name == name) {
-					return false;
+					throw new Error('指定した id は既に使用されています');
+					return;
 				}
 			}
            
 			var snd:Sound = new linkageID();
 			var sndObj:SoundObject = new SoundObject(name, snd, LIBRARY);
+			sndObj.defaultVolume = volume;
            
 			_soundsDict[name] = sndObj;
 			_sounds.push(sndObj);
-           
-			return true;
 		}
-
-		public function addExternalSound(path:URLRequest, name:String, buffer:Number = 1000, checkPolicyFile:Boolean = false):Boolean
+		
+		/**
+		 * 外部ストリーミングを登録
+		 */
+		public function addExternalSound(request:URLRequest, name:String, volume:Number = 1, buffer:Number = 1000, checkPolicyFile:Boolean = false):void
 		{
 			for each (var s:SoundObject in _sounds) {
 				if (s.name == name) {
-					return false;
+					throw new Error('指定した id は既に使用されています');
+					return;
 				}
 			}
            
-			var snd:Sound = new Sound(path, new SoundLoaderContext(buffer, checkPolicyFile));
+			var snd:Sound = new Sound(request, new SoundLoaderContext(buffer, checkPolicyFile));
 			var sndObj:SoundObject = new SoundObject(name, snd, EXTERNAL);
+			sndObj.defaultVolume = volume;
            
 			_soundsDict[name] = sndObj;
 			_sounds.push(sndObj);
-           
-			return true;
 		}
-
+		
+		/**
+		 * 
+		 */
 		public function removeSound(name:String):void
 		{
-			for (var i:int = 0;i < _sounds.length; i++) {
+			for (var i:int = 0;i < _sounds.length;i++) {
 				if (_sounds[i].name == name) {
 					_sounds[i] = null;
 					_sounds.splice(i, 1);
@@ -91,35 +107,60 @@ package jp.cellfusion.sound
 
 		public function removeAllSounds():void
 		{
-			for (var i:int = 0;i < _sounds.length; i++) {
+			for (var i:int = 0;i < _sounds.length;i++) {
 				_sounds[i] = null;
 			}
            
 			_sounds = [];
 			_soundsDict = new Dictionary(true);
 		}
-
-		public function playSound(name:String, volume:Number = 1, startTime:Number = 0, loops:int = 0, fade:Boolean = false):void
+		
+		public function playSE(name:String, volume:Number = 1):void
 		{
 			var snd:SoundObject = _soundsDict[name];
 			if (!snd) { return; }
+			
+			var st:SoundTransform = new SoundTransform(volume);
+			snd.sound.play(0, 0, st);
+		}
+		
+		public function playBGM(name:String, fade:Boolean = false):void
+		{
+			var snd:SoundObject = _soundsDict[name];
+			if (!snd) return;
+			if (snd.state == PLAY) return;
+			
+			var st:SoundTransform = new SoundTransform(fade ? 0 : snd.defaultVolume);
+			snd.channel = snd.sound.play(0, int.MAX_VALUE, st);
+			if (fade) { fadeSound(name,snd.defaultVolume); }
+           
+			snd.state = PLAY;
+		}
+		
+		public function playSound(name:String, volume:Number = 1, start:Number = 0, loops:int = 0, fade:Boolean = false):void
+		{
+			var snd:SoundObject = _soundsDict[name];
+			if (!snd) { return; }
+			
+//			switch (snd.state) {
+//				case PLAY:
+//				case MUTE: return;
+//				case PAUSE:
+//					start = snd.position;
+//					break;
+//				case STOP:
+//					break;
+//			}
+			
 			snd.volume = volume;
-			snd.startTime = startTime;
+			snd.startTime = start;
 			snd.loops = loops;
 			
-			var tv:Number = fade ? 0 : volume;
-            
-			if (snd.paused) {
-				snd.channel = snd.sound.play(snd.position, snd.loops, new SoundTransform(tv));
-			} else {
-				snd.channel = snd.sound.play(startTime, snd.loops, new SoundTransform(tv));
-			}
-			
-			if (fade) {
-				fadeSound(name, volume);
-			}
+			var st:SoundTransform = new SoundTransform(fade ? 0 : volume);
+			snd.channel = snd.sound.play(start, snd.loops, st);
+			if (fade) { fadeSound(name, volume); }
            
-			snd.paused = false;
+			snd.state = PLAY;
 		}
 
 		public function stopSound(name:String, fade:Boolean = false):void
@@ -133,19 +174,29 @@ package jp.cellfusion.sound
 				stopSoundCompleted(snd);
 			}
 		}
-		
+
 		private function stopSoundCompleted(snd:SoundObject):void
 		{
-			snd.paused = true;
 			snd.channel.stop();
-			snd.position = snd.channel.position;
+			snd.state = STOP;
+			snd.position = 0;
 		}
 
 		public function pauseSound(name:String):void
 		{
 			var snd:SoundObject = _soundsDict[name];
 			if (!snd) { return; }
-			snd.paused = true;
+			
+			switch (snd.state) {
+				case STOP:
+				case PAUSE:
+					return;
+				case PLAY:
+				case MUTE:
+					break;
+			}
+			
+			snd.state = PAUSE;
 			snd.position = snd.channel.position;
 			snd.channel.stop();
 		}
@@ -170,7 +221,7 @@ package jp.cellfusion.sound
 		{
 			for each (var s:SoundObject in _sounds) {
 				var id:String = s.name;
-               
+				
 				if (useCurrentlyPlayingOnly) {
 					if (!_soundsDict[id].paused) {
 						_soundsDict[id].pausedByAll = true;
@@ -204,25 +255,21 @@ package jp.cellfusion.sound
 			if (!s) { return; }
 			
 			var fadeChannel:SoundChannel = s.channel;
-			
 			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, Linear.easeNone, 0, fadeChannel, onComplete, onCompleteArgs);
 		}
 
 		public function muteAllSounds(fade:Boolean = false, fadeLength:Number = 1):void
 		{
 			for each (var s:SoundObject in _sounds) {
-//				if (s.type == LIBRARY) {
-//					continue;
-//				}
-				
 				var id:String = s.name;
                
-				//				setSoundVolume(id, 0);
 				if (fade) {
 					fadeSound(id, 0, fadeLength);
 				} else {
 					setSoundVolume(id, 0);
 				}
+				
+				s.state = MUTE;
 			}
 			
 			if (fade) {
@@ -239,20 +286,13 @@ package jp.cellfusion.sound
 		public function unmuteAllSounds(fade:Boolean = false, fadeLength:Number = 1):void
 		{
 			for each (var s:SoundObject in _sounds) {
-//				if (s.type == LIBRARY) {
-//					continue;
-//				}
-				
 				var id:String = s.name;
 				var snd:Object = _soundsDict[id];
 				
-				
-//				trace('id:'+id, 'volume:'+snd.volume);
-				
 				if (fade) {
-					fadeSound(id, snd.volume, fadeLength);
+					fadeSound(id, s.defaultVolume, fadeLength);
 				} else {
-					setSoundVolume(id, snd.volume);
+					setSoundVolume(id, s.defaultVolume);
 				}
 			}
 			
@@ -270,7 +310,9 @@ package jp.cellfusion.sound
 		public function setSoundVolume(name:String, volume:Number):void
 		{
 			var snd:Object = _soundsDict[name];
-			if (!snd) { return; }
+			if (!snd) { 
+				return; 
+			}
 			
 			var curTransform:SoundTransform = snd.channel.soundTransform;
 			curTransform.volume = volume;
@@ -296,7 +338,7 @@ package jp.cellfusion.sound
 		{
 			return _soundsDict[name];
 		}
-		
+
 		public function getSound(name:String):Sound
 		{
 			return _soundsDict[name].sound;
@@ -339,12 +381,13 @@ class SoundObject
 	public var sound:Sound;
 	public var channel:SoundChannel = new SoundChannel();
 	public var position:Number = 0;
-	public var paused:Boolean = true;
+	public var state:uint = 0;
 	public var volume:Number = 1;	public var prevVolume:Number = 1;
 	public var startTime:Number = 0;
 	public var loops:uint = 0;
 	public var pausedByAll:Boolean = false;
 	public var type:String;
+	public var defaultVolume:Number;
 
 	public function SoundObject(name:String, sound:Sound, type:String) 
 	{
