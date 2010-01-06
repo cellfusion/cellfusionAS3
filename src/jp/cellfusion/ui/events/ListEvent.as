@@ -1,0 +1,1 @@
+package jp.cellfusion.ui.events {	/**	 * @author Mk-10:cellfusion	 */	public class ListEvent	{		public static const LIST_CHANGE:String = "listChanged";	}}

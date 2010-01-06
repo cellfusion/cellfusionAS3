@@ -1,0 +1,1 @@
+package jp.cellfusion.ui.video.ui{	import flash.display.Sprite;	/**	 * @author Mk-10:cellfusion	 */	public interface IVolumeBar 	{		function get thumb():Sprite;		function set thumb(value:Sprite):void;		function get progress():Sprite;		function set progress(value:Sprite):void;		function get track():Sprite;		function set track(value:Sprite):void;	}}

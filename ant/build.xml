@@ -20,8 +20,8 @@
 		<echo>Complete</echo>
 	</target>
 	
-	<target name="AS3Library_swc_create">
-		<fdt.launch.library projectname="AS3Library" target="${basedir}/../bin/AS3Library.swc" />
+	<target name="swc_create">
+		<fdt.launch.library projectname="AS3Library" target="${basedir}/../bin/cellfusionAS3.swc" />
 	</target>
 	
 	<target name="myTarget">
