@@ -1,5 +1,7 @@
 package jp.cellfusion.ui 
 {
+	import jp.cellfusion.logger.Logger;
+
 	import flash.display.Sprite;
 	import flash.display.Stage;
 
@@ -25,6 +27,12 @@ package jp.cellfusion.ui
 			} catch (e:Error) {
 				return;
 			}
+			
+			// 初期化されてない場合には初期化してデバッグできるようにする
+			if (!Logger.ready) {
+				Logger.initialize();
+			}
+			
 			_isReady = true;
 		}
 		

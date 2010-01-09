@@ -97,5 +97,9 @@ package jp.cellfusion.logger
 		public static function get level():uint {
 			return _level;
 		}
+		
+		static public function get ready():Boolean {
+			return _ready;
+		}
 	}
 }

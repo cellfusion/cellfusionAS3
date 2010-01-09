@@ -26,7 +26,7 @@
  */
 package jp.cellfusion.ui.scrollbar 
 {
-	import jp.cellfusion.debug.SOSDebugger;
+	import jp.cellfusion.logger.Logger;
 	import jp.cellfusion.ui.events.ScrollEvent;
 
 	import flash.display.Sprite;
@@ -140,10 +140,10 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function scroll(target:Number):void
 		{
-			SOSDebugger.debug('SimpleScrollbar.scroll');
-			SOSDebugger.debug('target:'+target);
-			SOSDebugger.debug('maxScrollHeight'+maxScrollHeight);
-			SOSDebugger.debug('_scrollTween'+_scrollTween);
+			Logger.debug('SimpleScrollbar.scroll');
+			Logger.debug('target:'+target);
+			Logger.debug('maxScrollHeight'+maxScrollHeight);
+			Logger.debug('_scrollTween'+_scrollTween);
 			
 			var t:Number = Math.min(Math.max(0, target), 1) * maxScrollHeight;
 			_scrollTween.scroll(this, t);
@@ -162,11 +162,11 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function scrollHoge(target:Number):void
 		{
-			SOSDebugger.debug('SimpleScrollbar.scrollHoge');
-			SOSDebugger.debug('target:'+target);
-			SOSDebugger.debug('minScrollPos:'+minScrollPos);
-			SOSDebugger.debug('maxScrollPos:'+maxScrollPos);
-			SOSDebugger.debug('_scrollTween'+_scrollTween);
+			Logger.debug('SimpleScrollbar.scrollHoge');
+			Logger.debug('target:'+target);
+			Logger.debug('minScrollPos:'+minScrollPos);
+			Logger.debug('maxScrollPos:'+maxScrollPos);
+			Logger.debug('_scrollTween'+_scrollTween);
 			
 			// ターゲットがはみ出してないか確認
 			var t:Number = Math.min(Math.max(minScrollPos, target), maxScrollPos);
