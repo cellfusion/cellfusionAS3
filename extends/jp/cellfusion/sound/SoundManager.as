@@ -1,10 +1,5 @@
 package jp.cellfusion.sound
 {
-	import fl.motion.easing.Linear;
-
-	import com.flashdynamix.motion.Tweensy;
-	import com.flashdynamix.motion.TweensyGroup;
-
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.media.SoundLoaderContext;
@@ -373,7 +368,6 @@ package jp.cellfusion.sound
 
 import flash.media.Sound;
 import flash.media.SoundChannel;
-
 
 class SoundObject
 {

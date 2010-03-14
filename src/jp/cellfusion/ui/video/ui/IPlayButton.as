@@ -1,6 +1,6 @@
 package jp.cellfusion.ui.video.ui 
 {
-	import mx.core.IButton;
+	import jp.cellfusion.ui.button.IButton;
 
 	/**
 	 * @author Mk-10:cellfusion

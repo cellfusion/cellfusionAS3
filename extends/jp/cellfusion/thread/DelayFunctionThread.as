@@ -1,6 +1,5 @@
 package jp.cellfusion.thread 
 {
-	import org.libspark.thread.Thread;
 
 	/**
 	 * @author Mk-10:cellfusion

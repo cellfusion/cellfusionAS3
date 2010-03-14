@@ -1,11 +1,5 @@
 ﻿package jp.cellfusion.tweensy.thread 
-{	import com.flashdynamix.motion.TweensyTimeline;	
-	import com.flashdynamix.motion.Tweensy;
-	
-	import org.libspark.thread.Monitor;
-	import org.libspark.thread.Thread;
-	
-	import flash.utils.getTimer;	
+{	import flash.utils.getTimer;
 
 	/**	 * @author Mk-10:cellfusion	 */	public class TweensyThread extends Thread 
 	{		private var _monitor:Monitor;
