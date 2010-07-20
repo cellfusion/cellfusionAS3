@@ -1,4 +1,4 @@
-﻿package jp.cellfusion.tweensy.thread 
+﻿package jp.cellfusion.thread 
 {	import flash.utils.getTimer;
 
 	/**	 * @author Mk-10:cellfusion	 */	public class TweensyThread extends Thread 

@@ -250,7 +250,14 @@ package jp.cellfusion.sound
 			if (!s) { return; }
 			
 			var fadeChannel:SoundChannel = s.channel;
-			Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, Linear.easeNone, 0, fadeChannel, onComplete, onCompleteArgs);
+			
+			// TODO あとで直す
+			//Tweensy.to(fadeChannel.soundTransform, {volume:targVolume}, fadeLength, Linear.easeNone, 0, fadeChannel, onComplete, onCompleteArgs);
+			
+			var tween:IObjectTween = BetweenAS3.to(fadeChannel, {soundTransform: {volume: targVolume}}, fadeLength, Linear.easeNone);
+			tween.onComplete = onComplete;
+			tween.onCompleteParams = onCompleteArgs;
+			tween.play();
 		}
 
 		public function muteAllSounds(fade:Boolean = false, fadeLength:Number = 1):void
@@ -268,7 +275,8 @@ package jp.cellfusion.sound
 			}
 			
 			if (fade) {
-				Tweensy.to(SoundMixer.soundTransform, {volume:0}, fadeLength, Linear.easeNone, 0, SoundMixer);
+				//Tweensy.to(SoundMixer.soundTransform, {volume:0}, fadeLength, Linear.easeNone, 0, SoundMixer);
+				BetweenAS3.to(SoundMixer, {soundTransform: {volume: 0}}, fadeLength, Linear.easeNone).play();
 			} else {
 				var curTransform:SoundTransform = SoundMixer.soundTransform;
 				curTransform.volume = 0;
@@ -292,7 +300,8 @@ package jp.cellfusion.sound
 			}
 			
 			if (fade) {
-				Tweensy.to(SoundMixer.soundTransform, {volume:1}, fadeLength, Linear.easeNone, 0, SoundMixer);
+				//Tweensy.to(SoundMixer.soundTransform, {volume:1}, fadeLength, Linear.easeNone, 0, SoundMixer);
+				BetweenAS3.to(SoundMixer, {soundTransform: {volume: 1}}, fadeLength, Linear.easeNone).play();
 			} else {
 				var curTransform:SoundTransform = SoundMixer.soundTransform;
 				curTransform.volume = 1;

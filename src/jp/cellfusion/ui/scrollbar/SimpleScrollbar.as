@@ -39,9 +39,9 @@ package jp.cellfusion.ui.scrollbar
 	 */
 	public class SimpleScrollbar extends EventDispatcher implements IScrollbar 
 	{
-//		private var _view:DisplayObject;
+		//		private var _view:DisplayObject;
 		private var _scrollPos:Number = 0;
-		private var _scrollSize:Number = 20;
+		private var _scrollSize:Number = 0.1;
 		private var _scrollRepeat:IScrollRepeat;
 		private var _scrollTween:IScrollTween;
 		private var _scrollView:IScrollView;
@@ -97,17 +97,17 @@ package jp.cellfusion.ui.scrollbar
 			try {
 				_scrollView.view = view;
 			} catch (e:Error) {
-				
 			}
 			
-			_scrollSize = 20;
+			_scrollSize = 5;
 		}
-		
+
 		/**
 		 * 
 		 */
 		public function initialize(target:Number, view:Number):void
 		{
+			Logger.trace("initialize target:"+target+", view:"+view);
 			_targetSize = target;
 			_viewSize = view;
 			
@@ -134,21 +134,21 @@ package jp.cellfusion.ui.scrollbar
 			
 			scrollHoge(target);
 		}
-		
+
 		/**
 		 * @param target 0...1
 		 */
 		public function scroll(target:Number):void
 		{
 			Logger.debug('SimpleScrollbar.scroll');
-			Logger.debug('target:'+target);
-			Logger.debug('maxScrollHeight'+maxScrollHeight);
-			Logger.debug('_scrollTween'+_scrollTween);
+			Logger.debug('target:' + target);
+			Logger.debug('maxScrollHeight' + maxScrollHeight);
+			Logger.debug('_scrollTween' + _scrollTween);
 			
 			var t:Number = Math.min(Math.max(0, target), 1) * maxScrollHeight;
 			_scrollTween.scroll(this, t);
 		}
-		
+
 		public function setMargin(top:Number = 0, right:Number = 0, bottom:Number = 0, left:Number = 0):void
 		{
 			_margin.top = top;
@@ -156,17 +156,17 @@ package jp.cellfusion.ui.scrollbar
 			_margin.bottom = bottom;
 			_margin.left = left;
 		}
-		
+
 		/**
 		 * 
 		 */
 		public function scrollHoge(target:Number):void
 		{
 			Logger.debug('SimpleScrollbar.scrollHoge');
-			Logger.debug('target:'+target);
-			Logger.debug('minScrollPos:'+minScrollPos);
-			Logger.debug('maxScrollPos:'+maxScrollPos);
-			Logger.debug('_scrollTween'+_scrollTween);
+			Logger.debug('target:' + target);
+			Logger.debug('minScrollPos:' + minScrollPos);
+			Logger.debug('maxScrollPos:' + maxScrollPos);
+			Logger.debug('_scrollTween' + _scrollTween);
 			
 			// ターゲットがはみ出してないか確認
 			var t:Number = Math.min(Math.max(minScrollPos, target), maxScrollPos);
@@ -184,7 +184,10 @@ package jp.cellfusion.ui.scrollbar
 			// thumb の位置を修正
 			var target:Number = minScrollPos + maxScrollHeight * percent;
 			target = Math.min(Math.max(minScrollPos, target), maxScrollPos);
-			scrollPos = target;
+//			scrollPos = target;
+			
+			_scrollPos = target;
+			_scrollView.thumb.y = target;
 		}
 
 		private function thumbResize():void
@@ -219,12 +222,18 @@ package jp.cellfusion.ui.scrollbar
 
 		public function set scrollPos(value:Number):void
 		{
+			Logger.trace("scrollPos:"+value);
 			_scrollPos = value;
 			
 			dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_CHANGED));
 			
 			// 更新
 			_scrollView.thumb.y = value;
+		}
+
+		public function get targetPos():Number 
+		{
+			return scrollPercent * (_targetSize - viewSize);
 		}
 
 		public function get scrollPercent():Number 
@@ -267,6 +276,7 @@ package jp.cellfusion.ui.scrollbar
 				setViewArea();
 			}
 		}
+
 		public function get viewSize():Number
 		{
 			return _viewSize;
@@ -287,11 +297,12 @@ package jp.cellfusion.ui.scrollbar
 				setViewArea();
 			}
 		}
+
 		public function get targetSize():Number
 		{
 			return _targetSize;
 		}
-		
+
 		public function get minScrollPos():Number
 		{
 			return _scrollView.track.y + _margin.top;
@@ -306,14 +317,13 @@ package jp.cellfusion.ui.scrollbar
 		{
 			return _scrollView.track.height - _scrollView.thumb.height - _margin.height;
 		}
-		
+
 		public function get scrollView():IScrollView
 		{
 			return _scrollView;
 		}
 	}
 }
-
 
 class Margin
 {

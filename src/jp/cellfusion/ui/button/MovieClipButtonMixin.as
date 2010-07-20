@@ -18,6 +18,7 @@ package jp.cellfusion.ui.button
 		protected var _disable:uint;
 		private var _targetFrame:uint;
 		private var _target:MovieClip;
+		private var _anime:Boolean = true;
 
 		public function MovieClipButtonMixin(target:MovieClip, normal:String = 'normal', over:String = 'over', disable:String = 'disable')
 		{
@@ -27,15 +28,15 @@ package jp.cellfusion.ui.button
 			_disable = getFrame(disable);
 			
 			if (_normal == 0 && _over == 0 && _disable == 0) {
-				throw new Error('ボタンに必要なラベルがありません');
-				return;
+				_anime = false;
+//				throw new Error('ボタンに必要なラベルがありません');
+//				return;
 			}
 			
 			try {
 				_target.hitArea = this['hitarea'] || null;
 				Sprite(this['hitarea']).alpha = 0;
 			} catch (e:Error) {
-				
 			}
 			
 			_target.mouseChildren = false;
@@ -45,9 +46,10 @@ package jp.cellfusion.ui.button
 			_target.addEventListener(MouseEvent.CLICK, click);
 			
 			_target.stop();
+			
 			enabled = true;
 		}
-		
+
 		private function getFrame(label:String):uint
 		{
 			for each (var f:FrameLabel in _target.currentLabels) {
@@ -63,46 +65,56 @@ package jp.cellfusion.ui.button
 		{
 			enabled = false;
 		}
-		
+
 		public function atRollover():void
 		{
-			tweenStart(_over);
+			if (_anime) tweenStart(_over);
 		}
-		
+
 		public function atRollout():void
 		{
-			tweenStart(_normal);
+			if (_anime) tweenStart(_normal);
 		}
-		
+
 		public function atEnable():void
 		{
-//			tweenStart(_normal);
-			_target.gotoAndStop(_normal);
+			_target.mouseEnabled = true;
+			_target.buttonMode = true;
+			//			tweenStart(_normal);
+			if (_anime) {
+				_target.removeEventListener(Event.ENTER_FRAME, tweenProgress);
+				_target.gotoAndStop(_normal);
+			}
 		}
-		
+
 		public function atDisable():void
 		{
-//			tweenStart(_disable);
-			_target.gotoAndStop(_disable);
+			_target.mouseEnabled = false;
+			_target.buttonMode = false;
+			//			tweenStart(_disable);
+			if (_anime) {
+				_target.removeEventListener(Event.ENTER_FRAME, tweenProgress);
+				_target.gotoAndStop(_disable);
+			}
 		}
-		
+
 		public function set enabled(value:Boolean):void
 		{
-//			buttonMode = value;
+			//			buttonMode = value;
 			value ? atEnable() : atDisable();
 		}
-		
+
 		private function tweenStart(frame:uint):void
 		{
 			_targetFrame = frame;
 			_target.addEventListener(Event.ENTER_FRAME, tweenProgress);
 		}
-		
+
 		private function tweenComplete():void
 		{
 			_target.removeEventListener(Event.ENTER_FRAME, tweenProgress);
 		}
-		
+
 		private function tweenProgress(event:Event):void
 		{
 			var distance:int = _targetFrame - _target.currentFrame;
@@ -113,10 +125,10 @@ package jp.cellfusion.ui.button
 				distance > 0 ? _target.nextFrame() : _target.prevFrame();
 			}
 		}
-		
+
 		private function click(event:MouseEvent):void
 		{
-			if (_target.enabled) {
+			if (_target.enabled && event.target == _target) {
 				atClick();
 				_target.dispatchEvent(new ButtonEvent(ButtonEvent.CLICK));
 			}
@@ -124,20 +136,20 @@ package jp.cellfusion.ui.button
 
 		private function rollover(event:MouseEvent):void
 		{
-			if (_target.enabled) {
+			if (_target.enabled && event.target == _target) {
 				atRollover();
 				_target.dispatchEvent(new ButtonEvent(ButtonEvent.ROLL_OVER));
 			}
 		}
-		
+
 		private function rollout(event:MouseEvent):void
 		{
-			if (_target.enabled) {
+			if (_target.enabled && event.target == _target) {
 				atRollout();
 				_target.dispatchEvent(new ButtonEvent(ButtonEvent.ROLL_OUT));
 			}
 		}
-		
+
 		public function get x():Number
 		{
 			return _target.x;
@@ -147,12 +159,12 @@ package jp.cellfusion.ui.button
 		{
 			return _target.y;
 		}
-		
+
 		public function get enabled():Boolean
 		{
 			return _target.enabled;
 		}
-		
+
 		public function get buttonMode():Boolean
 		{
 			return _target.buttonMode;
@@ -172,27 +184,27 @@ package jp.cellfusion.ui.button
 		{
 			_target.y = value;
 		}
-		
+
 		public function set buttonMode(value:Boolean):void
 		{
 			_target.buttonMode = value;
 		}
-		
+
 		public function set visible(value:Boolean):void
 		{
 			_target.visible = value;
 		}
-		
+
 		public function dispatchEvent(event:Event):Boolean
 		{
 			return _target.dispatchEvent(event);
 		}
-		
+
 		public function hasEventListener(type:String):Boolean
 		{
 			return _target.hasEventListener(type);
 		}
-		
+
 		public function willTrigger(type:String):Boolean
 		{
 			return _target.willTrigger(type);
@@ -202,7 +214,7 @@ package jp.cellfusion.ui.button
 		{
 			_target.removeEventListener(type, listener, useCapture);
 		}
-		
+
 		public function addEventListener(type:String, listener:Function, useCapture:Boolean = false, priority:int = 0, useWeakReference:Boolean = false):void
 		{
 			_target.addEventListener(type, listener, useCapture, priority, useWeakReference);
