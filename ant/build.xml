@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Ant Build">
+<project name="cellfusionAS3">
 	
 	<property name="src.dir" value="${basedir}/../src"/>
 	<property name="deploy.dir" value="${basedir}/../bin"/>
