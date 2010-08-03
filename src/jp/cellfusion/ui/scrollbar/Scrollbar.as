@@ -1,29 +1,3 @@
-/*
- * AbstractUI
- * 
- * Licensed under the MIT License
- * 
- * Copyright (c) 2008 cellfusion (www.cellfusion.jp), supported by Spark project (www.libspark.org).
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * 
- */
 package jp.cellfusion.ui.scrollbar 
 {
 	import jp.cellfusion.logger.Logger;
@@ -32,12 +6,12 @@ package jp.cellfusion.ui.scrollbar
 	import flash.display.Sprite;
 	import flash.events.EventDispatcher;
 
-	[Event( name="scrollChanged", type="jp.cellfusion.abstractui.events.ScrollEvent" )]
+	[Event( name="scrollChanged", type="jp.cellfusion.ui.events.ScrollEvent" )]
 
 	/**
 	 * @author Mk-10:cellfusion
 	 */
-	public class SimpleScrollbar extends EventDispatcher implements IScrollbar 
+	public class Scrollbar extends EventDispatcher implements IScrollbar 
 	{
 		//		private var _view:DisplayObject;
 		private var _scrollPos:Number = 0;
@@ -86,10 +60,10 @@ package jp.cellfusion.ui.scrollbar
 		 * }
 		 * </pre>
 		 */
-		public function SimpleScrollbar(view:Sprite = null)
+		public function Scrollbar(view:Sprite = null)
 		{
-			_scrollTween = new SimpleScrollTween();
-			_scrollRepeat = new SimpleScrollRepeat();
+			_scrollTween = new ScrollTween();
+			_scrollRepeat = new ScrollRepeat();
 			_scrollView = new ScrollView(this);
 			
 			_margin = new Margin();
@@ -107,7 +81,7 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function initialize(target:Number, view:Number):void
 		{
-			Logger.trace("initialize target:"+target+", view:"+view);
+			Logger.trace("initialize target:" + target + ", view:" + view);
 			_targetSize = target;
 			_viewSize = view;
 			
@@ -184,8 +158,7 @@ package jp.cellfusion.ui.scrollbar
 			// thumb の位置を修正
 			var target:Number = minScrollPos + maxScrollHeight * percent;
 			target = Math.min(Math.max(minScrollPos, target), maxScrollPos);
-//			scrollPos = target;
-			
+			//			scrollPos = target;
 			_scrollPos = target;
 			_scrollView.thumb.y = target;
 		}
@@ -222,7 +195,7 @@ package jp.cellfusion.ui.scrollbar
 
 		public function set scrollPos(value:Number):void
 		{
-			Logger.trace("scrollPos:"+value);
+			Logger.trace("scrollPos:" + value);
 			_scrollPos = value;
 			
 			dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_CHANGED));
