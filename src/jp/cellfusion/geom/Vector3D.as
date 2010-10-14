@@ -52,7 +52,7 @@ package jp.cellfusion.geom
 		 */
 		public function dot(v:Vector3D):Number 
 		{
-			var n = x * v.x + y * v.y + z * v.z;
+			var n:Number = x * v.x + y * v.y + z * v.z;
 		
 			return n;
 		}

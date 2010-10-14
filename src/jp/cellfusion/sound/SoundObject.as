@@ -1,14 +1,19 @@
-package jp.cellfusion.sound 
+package jp.cellfusion.sound
 {
+	import fl.motion.easing.Linear;
+
 	import flash.events.Event;
-	import flash.media.SoundTransform;
-	import flash.media.SoundChannel;
+	import flash.events.TimerEvent;
 	import flash.media.Sound;
+	import flash.media.SoundChannel;
+	import flash.media.SoundTransform;
+	import flash.utils.Timer;
+	import flash.utils.getTimer;
 
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 */
-	public class SoundObject 
+	public class SoundObject
 	{
 		public static const BGM:uint = 0;
 		public static const SE:uint = 1;
@@ -23,110 +28,185 @@ package jp.cellfusion.sound
 		protected var _state:uint;
 		private var _position:Number;
 		private var _loops:int;
+		private var _isMute:Boolean;
+		private var _muteVolume:Number;
+		private var _fadeTimer:Timer;
+		private var _fadeTargetVolume:Number;
+		private var _fadeTargetTime:Number;
+		private var _fadeEasing:Function;
+		private var _fadeStartTime:int;
+		private var _fadeStartVolume:Number;
+		private var _isSolo:Boolean;
 
-		public function SoundObject(sound:Sound, type:uint = BGM) 
+		public function SoundObject(sound:Sound, type:uint = BGM)
 		{
 			_sound = sound;
 			_type = type;
 			_soundTransform = new SoundTransform();
 			_volume = 1;
 			_state = STATE_STOP;
+			_isMute = false;
+			_isSolo = false;
+
+			_fadeTimer = new Timer(250, 4);
+			_fadeTimer.addEventListener(TimerEvent.TIMER, fadeProgress);
+			_fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, fadeComplete);
 		}
 
-		public function mute():void 
+		public function mute(fade:Boolean = false, seconds:Number = 1, easing:Function = null):void
 		{
-			// TODO
+			if (!_isMute) {
+				_muteVolume = volume;
+
+				if (fade) {
+					easing = easing || Linear.easeNone;
+					fadeStart(0, seconds, easing);
+				} else {
+					volume = 0;
+				}
+			} else {
+				if (fade) {
+					easing = easing || Linear.easeNone;
+					fadeStart(_muteVolume, seconds, easing);
+				} else {
+					volume = _muteVolume;
+				}
+			}
+
+			_isMute = !_isMute;
 		}
 
-		public function unmute():void 
-		{
-			// TODO
-		}
-		
 		/**
 		 * 
 		 */
-		public function solo():void 
+		public function solo(fade:Boolean = false, seconds:Number = 1, easing:Function = null):void
 		{
-			// TODO
+			// TODO solo 実装
+			_isSolo = !_isSolo;
+			
+			SoundManager.instance.solo();
 		}
 
-		public function play(startTime:Number = 0, loops:int = 0):void 
+		public function soloExecute():void
+		{
+			
+		}
+
+		public function play(startTime:Number = 0, loops:int = 0):void
 		{
 			if (_state != STATE_STOP) return;
-			
+
 			_state = STATE_PLAY;
 			_loops = loops;
 			_channel = _sound.play(startTime, loops, _soundTransform);
 			_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
 		}
 
-		private function soundComplete(event:Event):void 
+		private function soundComplete(event:Event):void
 		{
-			
 			_state = STATE_STOP;
 			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 			_channel = null;
 		}
 
-		public function stop():void 
+		public function stop():void
 		{
 			if (_state != STATE_PLAY) return;
-			
+
 			_state = STATE_STOP;
-			
+
 			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 			_channel.stop();
 			_channel = null;
 		}
 
-		public function pause():void 
+		public function pause():void
 		{
 			if (_state != STATE_PLAY) return;
-			
+
 			_state = STATE_PAUSE;
-			
+
 			_position = _channel.position;
-			
+
 			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 			_channel.stop();
 			_channel = null;
 		}
 
-		public function resume():void 
+		public function resume():void
 		{
 			if (_state != STATE_PAUSE) return;
-			
+
 			_state = STATE_PLAY;
 			_channel = _sound.play(_position, _loops, _soundTransform);
 			_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
 		}
 
-		public function get volume():Number 
+		public function get volume():Number
 		{
 			return _volume;
 		}
 
-		public function set volume(value:Number):void 
+		public function set volume(value:Number):void
 		{
 			_volume = value;
+
 			// masterVolume の影響を受ける
-			_soundTransform.volume = _volume * SoundManager2.instance.volume;
-			
+			_soundTransform.volume = value * SoundManager.instance.volume;
+
 			if (_channel) {
 				_channel.soundTransform = _soundTransform;
 			}
 		}
 
-		public function destroy():void 
+		private function fadeStart(volume:Number, seconds:Number, easing:Function):void
+		{
+			if (_fadeTimer.running) {
+				_fadeTimer.stop();
+				_fadeTimer.reset();
+			}
+
+			_fadeTimer.delay = 33;
+			_fadeTimer.repeatCount = Math.round(seconds / 0.033);
+			_fadeTimer.reset();
+			_fadeTargetVolume = volume;
+			_fadeTargetTime = seconds;
+			_fadeEasing = easing;
+			_fadeStartTime = getTimer();
+			_fadeStartVolume = _volume;
+			_fadeTimer.start();
+		}
+
+		private function fadeProgress(event:TimerEvent):void
+		{
+			var dist:Number = (getTimer() - _fadeStartTime) / 1000;
+			volume = _fadeEasing(dist, _fadeStartVolume, (_fadeTargetVolume - _fadeStartVolume), _fadeTargetTime);
+		}
+
+		private function fadeComplete(event:TimerEvent):void
+		{
+			volume = _fadeTargetVolume;
+		}
+
+		public function destroy():void
 		{
 			if (_channel) {
 				_channel.stop();
 				_channel = null;
 			}
-			
+
 			_sound.close();
 			_soundTransform = null;
+		}
+
+		public function get isSolo():Boolean
+		{
+			return _isSolo;
+		}
+
+		public function get isMute():Boolean
+		{
+			return _isMute;
 		}
 	}
 }

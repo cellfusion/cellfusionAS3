@@ -1,20 +1,17 @@
-package jp.cellfusion.sound 
+package jp.cellfusion.sound
 {
-
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 */
-	public interface ISoundObject 
+	public interface ISoundObject
 	{
 		function play(startTime:Number = 0, loops:int = 0):void;
 
 		function stop():void;
 
-		function mute():void;
+		function mute(fade:Boolean = false, seconds:Number = 1, easing:Function = null):void;
 
-		function unmute():void;
-
-		function solo():void;
+		function solo(fade:Boolean = false, seconds:Number = 1, easing:Function = null):void;
 
 		function pause():void;
 
@@ -25,5 +22,9 @@ package jp.cellfusion.sound
 		function get volume():Number;
 
 		function set volume(value:Number):void;
+
+		function get isMute():Boolean;
+
+		function get isSolo():Boolean;
 	}
 }

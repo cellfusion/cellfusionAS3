@@ -268,7 +268,7 @@ package jp.cellfusion.geom
 		 * 転置行列の作成
 		 * @param	v:Matrix
 		 */
-		public function invert(v:Matrix4x4) 
+		public function invert(v:Matrix4x4):void
 		{
 			m00 = v.m00;
 			m01 = v.m10;
@@ -386,9 +386,9 @@ package jp.cellfusion.geom
 			return m;
 		}
 
-		function toString():String 
-		{
-			return "[" + m00 + ", " + m01 + ", " + m02 + ", " + m03 + "]\n" + "[" + m10 + ", " + m11 + ", " + m12 + ", " + m13 + "]\n" + "[" + m20 + ", " + m21 + ", " + m22 + ", " + m23 + "]\n" + "[" + m30 + ", " + m31 + ", " + m32 + ", " + m33 + "]\n";
-		}
+//		function toString():String 
+//		{
+//			return "[" + m00 + ", " + m01 + ", " + m02 + ", " + m03 + "]\n" + "[" + m10 + ", " + m11 + ", " + m12 + ", " + m13 + "]\n" + "[" + m20 + ", " + m21 + ", " + m22 + ", " + m23 + "]\n" + "[" + m30 + ", " + m31 + ", " + m32 + ", " + m33 + "]\n";
+//		}
 	}
 }
