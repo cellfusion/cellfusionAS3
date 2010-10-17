@@ -21,7 +21,7 @@ package jp.cellfusion.sound
 		private var _fadeEasing:Function;
 		private var _fadeTargetVolume:Number;
 		private var _fadeTargetTime:Number;
-		private var _sounds:Vector.<ISoundObject>;
+		private var _sounds:Array;
 		private var _ids:Dictionary;
 		private var _muteVolume:Number;
 		private var _solo:Array;
@@ -35,7 +35,7 @@ package jp.cellfusion.sound
 
 		public function SoundManager(se:SingletonEnforcer)
 		{
-			_sounds = new Vector.<ISoundObject>();
+			_sounds = [];
 			_solo = [];
 			_ids = new Dictionary();
 			_volume = 1;
