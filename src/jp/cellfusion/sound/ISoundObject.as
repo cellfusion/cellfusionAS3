@@ -15,8 +15,6 @@ package jp.cellfusion.sound
 
 		function pause():void;
 
-		function resume():void;
-
 		function destroy():void;
 
 		function get volume():Number;
@@ -26,5 +24,7 @@ package jp.cellfusion.sound
 		function get isMute():Boolean;
 
 		function get isSolo():Boolean;
+		
+		function get position():Number;
 	}
 }

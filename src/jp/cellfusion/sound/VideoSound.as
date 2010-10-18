@@ -139,5 +139,12 @@ package jp.cellfusion.sound
 		{
 			return _isSolo;
 		}
+
+		public function get position():Number
+		{
+			return _ns ? _ns.time : 0;
+		}
+		
+		
 	}
 }

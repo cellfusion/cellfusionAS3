@@ -83,23 +83,26 @@ package jp.cellfusion.sound
 		{
 			// TODO solo 実装
 			_isSolo = !_isSolo;
-			
+
 			SoundManager.instance.solo();
 		}
 
 		public function soloExecute():void
 		{
-			
 		}
 
 		public function play(startTime:Number = 0, loops:int = 0):void
 		{
-			if (_state != STATE_STOP) return;
-
-			_state = STATE_PLAY;
-			_loops = loops;
-			_channel = _sound.play(startTime, loops, _soundTransform);
-			_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+			if (_state == STATE_PLAY) {
+				return;
+			} else if (_state == STATE_PAUSE) {
+				pause();
+			} else {
+				_state = STATE_PLAY;
+				_loops = loops;
+				_channel = _sound.play(startTime, loops, _soundTransform);
+				_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+			}
 		}
 
 		private function soundComplete(event:Event):void
@@ -111,7 +114,7 @@ package jp.cellfusion.sound
 
 		public function stop():void
 		{
-			if (_state != STATE_PLAY) return;
+			if (_state == STATE_STOP) return;
 
 			_state = STATE_STOP;
 
@@ -122,24 +125,20 @@ package jp.cellfusion.sound
 
 		public function pause():void
 		{
-			if (_state != STATE_PLAY) return;
+			if (_state == STATE_PAUSE) {
+				_state = STATE_PLAY;
+				_channel = _sound.play(_channel.position || 0, _loops, _soundTransform);
+				_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+			} else if (_state == STATE_STOP) {
+			} else {
+				_state = STATE_PAUSE;
 
-			_state = STATE_PAUSE;
+				_position = _channel.position;
 
-			_position = _channel.position;
-
-			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
-			_channel.stop();
-			_channel = null;
-		}
-
-		public function resume():void
-		{
-			if (_state != STATE_PAUSE) return;
-
-			_state = STATE_PLAY;
-			_channel = _sound.play(_position, _loops, _soundTransform);
-			_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+				_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
+				_channel.stop();
+				// _channel = null;
+			}
 		}
 
 		public function get volume():Number
@@ -207,6 +206,11 @@ package jp.cellfusion.sound
 		public function get isMute():Boolean
 		{
 			return _isMute;
+		}
+
+		public function get position():Number
+		{
+			return _channel ? _channel.position : 0;
 		}
 	}
 }

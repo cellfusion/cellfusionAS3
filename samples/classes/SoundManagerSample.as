@@ -1,5 +1,7 @@
 package  
 {
+	import jp.cellfusion.logger.Logger;
+	import flash.events.Event;
 	import jp.cellfusion.sound.ISoundObject;
 	import jp.cellfusion.sound.ExternalSound;
 	import jp.cellfusion.sound.SoundManager;
@@ -33,6 +35,8 @@ package
 
 		public function SoundManagerSample()
 		{
+			Logger.initialize();
+			
 			_muteButton = new LabelButton("mute", 100, 20);
 			_muteButton.addEventListener(MouseEvent.CLICK, function(event:MouseEvent):void {
 				SoundManager.instance.mute();
@@ -57,6 +61,7 @@ package
 			_playButton = new LabelButton("bgmPlay", 100, 20);
 			_playButton.y = 60;
 			_playButton.addEventListener(MouseEvent.CLICK, function(event:MouseEvent):void {
+				addEventListener(Event.ENTER_FRAME, updateHandler);
 				SoundManager.instance.getSound("sampleExternalSound").play();
 			});
 			addChild(_playButton);
@@ -64,6 +69,7 @@ package
 			_stopButton = new LabelButton("bgmStop", 100, 20);
 			_stopButton.y = 90;
 			_stopButton.addEventListener(MouseEvent.CLICK, function(event:MouseEvent):void {
+				removeEventListener(Event.ENTER_FRAME, updateHandler);
 				SoundManager.instance.getSound("sampleExternalSound").stop();
 			});
 			addChild(_stopButton);
@@ -89,12 +95,6 @@ package
 			});
 			addChild(_bgmSoloButton);
 			
-			_resumeButton = new LabelButton("bgmResume", 100, 20);
-			_resumeButton.y = 240;
-			_resumeButton.addEventListener(MouseEvent.CLICK, function(event:MouseEvent):void {
-				SoundManager.instance.getSound("sampleExternalSound").resume();
-			});
-			addChild(_resumeButton);
 			
 			// Video
 			_video = new VideoPlayer("videoSample", 640, 360);
@@ -137,6 +137,11 @@ package
 			addChild(_videoSoloButton);
 			
 			_sampleSo = SoundManager.instance.add(new ExternalSound(new URLRequest("sample.mp3")), "sampleExternalSound");
+		}
+
+		private function updateHandler(event:Event):void
+		{
+			Logger.trace("time:" + SoundManager.instance.getSound("sampleExternalSound").position);
 		}
 	}
 }
