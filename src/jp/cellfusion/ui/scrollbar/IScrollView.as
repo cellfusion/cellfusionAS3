@@ -7,6 +7,9 @@ package jp.cellfusion.ui.scrollbar
 	 */
 	public interface IScrollView 
 	{
+		// view の反映とか
+//		function update():void;
+		
 		function set view(target:Sprite):void;
 		
 		function get upButton():Sprite;		function set upButton(target:Sprite):void;

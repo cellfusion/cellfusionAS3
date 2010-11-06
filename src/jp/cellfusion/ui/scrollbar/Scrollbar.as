@@ -24,11 +24,11 @@ package jp.cellfusion.ui.scrollbar
 		public static const VERTICAL:int = 1;
 		public static const HORIZON:int = 0;
 		// private var _view:DisplayObject;
-		private var _scrollPos:Number = 0;
-		private var _scrollSize:Number = 0.1;
-		private var _scrollRepeat:IScrollRepeat;
-		private var _scrollTween:IScrollTween;
-		private var _scrollView:IScrollView;
+		private var _pos:Number = 0;
+		private var _size:Number = 0.1;
+		private var _repeat:IScrollRepeat;
+		private var _tween:IScrollTween;
+		private var _view:IScrollView;
 		private var _thumbSizeLock:Boolean = false;
 		private var _margin:Margin;
 		private var _viewSize:Number;
@@ -73,20 +73,20 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function Scrollbar(direction:int = 1, view:Sprite = null)
 		{
-			_scrollTween = new ScrollTween();
-			_scrollRepeat = new ScrollRepeat();
-			_scrollView = new ScrollView(direction, this);
+			_tween = new ScrollTween();
+			_repeat = new ScrollRepeat();
+			_view = new ScrollView(direction, this);
 
 			_margin = new Margin();
 
 			_direction = direction;
 
 			try {
-				_scrollView.view = view;
+				_view.view = view;
 			} catch (e:Error) {
 			}
 
-			_scrollSize = 5;
+			_size = 5;
 		}
 
 		/**
@@ -99,25 +99,25 @@ package jp.cellfusion.ui.scrollbar
 			_viewSize = view;
 
 			if (target < view) {
-				_scrollView.enabled = false;
+				_view.enabled = false;
 				return;
 			}
 
 			setViewArea();
-			_scrollView.enabled = true;
+			_view.enabled = true;
 			_isReady = true;
 		}
 
 		public function scrollUp():void
 		{
-			var target:Number = _scrollPos - _scrollSize;
+			var target:Number = _pos - _size;
 
 			scrollHoge(target);
 		}
 
 		public function scrollDown():void
 		{
-			var target:Number = _scrollPos + _scrollSize;
+			var target:Number = _pos + _size;
 
 			scrollHoge(target);
 		}
@@ -127,8 +127,8 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function scroll(target:Number):void
 		{
-			var t:Number = Math.min(Math.max(0, target), 1) * maxScrollSize;
-			_scrollTween.scroll(this, t);
+			var t:Number = Math.min(Math.max(0, target), 1);
+			_tween.scroll(this, t);
 		}
 		
 		/**
@@ -136,9 +136,12 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function scrollHoge(target:Number):void
 		{
-			// ターゲットがはみ出してないか確認
-			var t:Number = Math.min(Math.max(minScrollPos, target), maxScrollPos);
-			_scrollTween.scroll(this, t);
+			scroll(target / maxScrollPos);
+		}
+		
+		public function get scrollTraget():Number
+		{
+			return _tween.target;
 		}
 
 		public function setMargin(top:Number = 0, right:Number = 0, bottom:Number = 0, left:Number = 0):void
@@ -155,17 +158,9 @@ package jp.cellfusion.ui.scrollbar
 		private function setViewArea():void
 		{
 			// サイズ変更時のポジションを格納
-			var percent:Number = scrollPercent;
-
 			thumbResize();
 
-			// thumb の位置を修正
-			var target:Number = minScrollPos + maxScrollSize * percent;
-			target = Math.min(Math.max(minScrollPos, target), maxScrollPos);
-			// scrollPos = target;
-			_scrollPos = target;
-
-			draw(target);
+			draw(_pos);
 		}
 
 		private function thumbResize():void
@@ -173,15 +168,15 @@ package jp.cellfusion.ui.scrollbar
 			var scale:Number;
 
 			if (_direction) {
-				scale = _scrollView.thumb.scaleY;
-				_scrollView.thumb.scaleY = 1;
-				_scrollView.thumb.height = _thumbSizeLock ? _scrollView.thumb.height : (_scrollView.track.height - _margin.height) * (_viewSize / _targetSize);
-				_scrollView.thumb.scaleY = scale;
+				scale = _view.thumb.scaleY;
+				_view.thumb.scaleY = 1;
+				_view.thumb.height = _thumbSizeLock ? _view.thumb.height : (_view.track.height - _margin.height) * (_viewSize / _targetSize);
+				_view.thumb.scaleY = scale;
 			} else {
-				scale = _scrollView.thumb.scaleX;
-				_scrollView.thumb.scaleX = 1;
-				_scrollView.thumb.width = _thumbSizeLock ? _scrollView.thumb.width : (_scrollView.track.width - _margin.width) * (_viewSize / _targetSize);
-				_scrollView.thumb.scaleX = scale;
+				scale = _view.thumb.scaleX;
+				_view.thumb.scaleX = 1;
+				_view.thumb.width = _thumbSizeLock ? _view.thumb.width : (_view.track.width - _margin.width) * (_viewSize / _targetSize);
+				_view.thumb.scaleX = scale;
 			}
 		}
 
@@ -193,20 +188,20 @@ package jp.cellfusion.ui.scrollbar
 		public function set thumbSizeLock(value:Boolean):void
 		{
 			_thumbSizeLock = value;
-			if (_scrollView.thumb && _scrollView.track) {
+			if (_view.thumb && _view.track) {
 				thumbResize();
 			}
 		}
 
-		public function get scrollPos():Number
+		public function get pos():Number
 		{
-			return _scrollPos;
+			return _pos;
 		}
 
-		public function set scrollPos(value:Number):void
+		public function set pos(value:Number):void
 		{
 //			Logger.trace("scrollPos:" + value);
-			_scrollPos = value;
+			_pos = value;
 
 			dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_CHANGE));
 			
@@ -216,42 +211,32 @@ package jp.cellfusion.ui.scrollbar
 		private function draw(value:Number):void
 		{
 			if (_direction) {
-				_scrollView.thumb.y = value;
+				_view.thumb.y = value * maxScrollSize;
 //				_scrollView.thumb.y = value + _scrollView.track.y;
 			} else {
-				_scrollView.thumb.x = value;
+				_view.thumb.x = value * maxScrollSize;
 //				_scrollView.thumb.x = value + _scrollView.track.x;
 			}
 		}
 
-		public function get targetPos():Number
+		public function get size():Number
 		{
-			return scrollPercent * (_targetSize - viewSize);
+			return _size;
 		}
 
-		public function get scrollPercent():Number
+		public function set size(value:Number):void
 		{
-			return (_scrollPos - minScrollPos) / maxScrollSize;
+			_size = value;
 		}
 
-		public function get scrollSize():Number
+		public function get tween():IScrollTween
 		{
-			return _scrollSize;
+			return _tween;
 		}
 
-		public function set scrollSize(value:Number):void
+		public function get repeat():IScrollRepeat
 		{
-			_scrollSize = value;
-		}
-
-		public function get scrollTween():IScrollTween
-		{
-			return _scrollTween;
-		}
-
-		public function get scrollRepeat():IScrollRepeat
-		{
-			return _scrollRepeat;
+			return _repeat;
 		}
 
 		/**
@@ -299,9 +284,9 @@ package jp.cellfusion.ui.scrollbar
 		public function get minScrollPos():Number
 		{
 			if (_direction) {
-				return _scrollView.track.y + _margin.top;
+				return _view.track.y + _margin.top;
 			} else {
-				return _scrollView.track.x + _margin.left;
+				return _view.track.x + _margin.left;
 			}
 		}
 
@@ -313,15 +298,15 @@ package jp.cellfusion.ui.scrollbar
 		public function get maxScrollSize():Number
 		{
 			if (_direction) {
-				return _scrollView.track.height - _scrollView.thumb.height - _margin.height;
+				return _view.track.height - _view.thumb.height - _margin.height;
 			} else {
-				return _scrollView.track.width - _scrollView.thumb.width - _margin.width;
+				return _view.track.width - _view.thumb.width - _margin.width;
 			}
 		}
 
-		public function get scrollView():IScrollView
+		public function get view():IScrollView
 		{
-			return _scrollView;
+			return _view;
 		}
 	}
 }

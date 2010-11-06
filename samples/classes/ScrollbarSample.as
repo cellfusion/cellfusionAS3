@@ -105,13 +105,13 @@
 
 		private function horizonScrollChangeHandler(event:ScrollEvent):void
 		{
-			_sp.x = (_mask.width - _sp.width) * _horizon_sb.scrollPercent;
+			_sp.x = (_mask.width - _sp.width) * _horizon_sb.pos;
 		}
 
 		private function veticalScrollChangeHandler(event:ScrollEvent):void
 		{
 			trace("verticalScrollChange");
-			_sp.y = (_mask.height - _sp.height) * _vertical_sb.scrollPercent;
+			_sp.y = (_mask.height - _sp.height) * _vertical_sb.pos;
 		}
 	}
 }

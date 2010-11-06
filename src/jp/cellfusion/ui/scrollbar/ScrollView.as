@@ -116,7 +116,7 @@ package jp.cellfusion.ui.scrollbar
 			_track = target;
 
 			try {
-				_scrollbar.scrollPos = _scrollbar.minScrollPos;
+				_scrollbar.pos = _scrollbar.minScrollPos;
 			} catch (e:Error) {
 			}
 
@@ -170,7 +170,7 @@ package jp.cellfusion.ui.scrollbar
 			}
 
 			// スクロールを停止する
-			_scrollbar.scrollTween.interrupt();
+			_scrollbar.tween.interrupt();
 
 			// ドラッグできる範囲の Rectangle インスタンスを作成
 			// var bounds:Rectangle = new Rectangle(_thumb.x, Math.ceil(_track.y + _scrollbar.getMargin().top));
@@ -197,24 +197,24 @@ package jp.cellfusion.ui.scrollbar
 		private function dragProgressHandler(event:Event):void
 		{
 			// Logger.trace("dragProgressHandler");
-			if (_direction) {
-				_scrollbar.scrollPos = _thumb.y;
-			} else {
-				_scrollbar.scrollPos = _thumb.x;
-			}
+			update();
 
 			_scrollbar.dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_DRAG_PROGRESS));
+		}
+
+		private function update():void
+		{
+			if (_direction) {
+				_scrollbar.pos = (_thumb.y - _scrollbar.minScrollPos) / _scrollbar.maxScrollPos;
+			} else {
+				_scrollbar.pos = (_thumb.x - _scrollbar.minScrollPos) / _scrollbar.maxScrollPos;
+			}
 		}
 
 		private function dragEndHandler(event:MouseEvent):void
 		{
 			// Logger.trace("dragComplete");
-
-			if (_direction) {
-				_scrollbar.scrollPos = _thumb.y;
-			} else {
-				_scrollbar.scrollPos = _thumb.x;
-			}
+			update();
 
 			_thumb.stopDrag();
 			_scrollbar.dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_DRAG_COMPLETE));
@@ -224,7 +224,7 @@ package jp.cellfusion.ui.scrollbar
 
 		private function downButtonMouseDownHandler(event:MouseEvent):void
 		{
-			_scrollbar.scrollRepeat.repeatedClick(_downButton, 12);
+			_scrollbar.repeat.repeatedClick(_downButton, 12);
 		}
 
 		private function scrollDownHandler(event:MouseEvent):void
@@ -234,7 +234,7 @@ package jp.cellfusion.ui.scrollbar
 
 		private function upButtonMouseDownHandler(event:MouseEvent):void
 		{
-			_scrollbar.scrollRepeat.repeatedClick(_upButton, 12);
+			_scrollbar.repeat.repeatedClick(_upButton, 12);
 		}
 
 		private function scrollUpHandler(event:MouseEvent):void
