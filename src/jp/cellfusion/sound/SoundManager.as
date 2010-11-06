@@ -71,7 +71,7 @@ package jp.cellfusion.sound
 				return;
 			}
 
-			var so:SoundObject = _ids[id];
+			var so:ISoundObject = _ids[id];
 			so.destroy();
 
 			var idx:int = _sounds.indexOf(so);

@@ -1,6 +1,9 @@
 package jp.cellfusion.ui.scrollbar
 {
-	import jp.cellfusion.logger.Logger;
+	import jp.cellfusion.ui.events.ScrollEvent;
+
+	import flash.events.EventDispatcher;
+
 	import jp.cellfusion.ui.AbstractUI;
 
 	import flash.display.Sprite;
@@ -19,7 +22,7 @@ package jp.cellfusion.ui.scrollbar
 		private var _track:Sprite;
 		private var _thumb:Sprite;
 		private var _enabled:Boolean;
-		private var _direction : int;
+		private var _direction:int;
 
 		public function ScrollView(direction:int, scrollbar:IScrollbar)
 		{
@@ -143,25 +146,25 @@ package jp.cellfusion.ui.scrollbar
 
 		private function scrollHandler(event:MouseEvent):void
 		{
-			Logger.trace("scrollhandler enabled:" + _enabled + " mouseY:" + _track.mouseY);
+			// Logger.trace("scrollhandler enabled:" + _enabled + " mouseY:" + _track.mouseY);
 			if (!_enabled) {
 				return;
 			}
 
 			var target:Number;
-			
+
 			if (_direction) {
 				target = _track.mouseY + _track.y;
 			} else {
 				target = _track.mouseX + _track.x;
 			}
-			
+
 			_scrollbar.scrollHoge(target);
 		}
 
 		private function dragStartHandler(event:MouseEvent):void
 		{
-			Logger.trace("dragStart enabled:" + _enabled);
+			// Logger.trace("dragStart enabled:" + _enabled);
 			if (!_enabled) {
 				return;
 			}
@@ -172,7 +175,7 @@ package jp.cellfusion.ui.scrollbar
 			// ドラッグできる範囲の Rectangle インスタンスを作成
 			// var bounds:Rectangle = new Rectangle(_thumb.x, Math.ceil(_track.y + _scrollbar.getMargin().top));
 			var bounds:Rectangle;
-			
+
 			// TODO Margin とか
 			if (_direction) {
 				bounds = new Rectangle(_thumb.x, Math.ceil(_track.y));
@@ -185,6 +188,7 @@ package jp.cellfusion.ui.scrollbar
 			}
 
 			_thumb.startDrag(false, bounds);
+			_scrollbar.dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_DRAG_START));
 
 			AbstractUI._stage.addEventListener(MouseEvent.MOUSE_UP, dragEndHandler);
 			AbstractUI._stage.addEventListener(Event.ENTER_FRAME, dragProgressHandler);
@@ -192,27 +196,28 @@ package jp.cellfusion.ui.scrollbar
 
 		private function dragProgressHandler(event:Event):void
 		{
-			Logger.trace("dragProgressHandler");
+			// Logger.trace("dragProgressHandler");
 			if (_direction) {
-			_scrollbar.scrollPos = _thumb.y;
+				_scrollbar.scrollPos = _thumb.y;
 			} else {
-			_scrollbar.scrollPos = _thumb.x;
-				
+				_scrollbar.scrollPos = _thumb.x;
 			}
+
+			_scrollbar.dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_DRAG_PROGRESS));
 		}
 
 		private function dragEndHandler(event:MouseEvent):void
 		{
-			Logger.trace("dragComplete");
-			
+			// Logger.trace("dragComplete");
+
 			if (_direction) {
-			_scrollbar.scrollPos = _thumb.y;
+				_scrollbar.scrollPos = _thumb.y;
 			} else {
-			_scrollbar.scrollPos = _thumb.x;
-				
+				_scrollbar.scrollPos = _thumb.x;
 			}
 
 			_thumb.stopDrag();
+			_scrollbar.dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_DRAG_COMPLETE));
 			AbstractUI._stage.removeEventListener(MouseEvent.MOUSE_UP, dragEndHandler);
 			AbstractUI._stage.removeEventListener(Event.ENTER_FRAME, dragProgressHandler);
 		}

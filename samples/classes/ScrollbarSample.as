@@ -14,12 +14,12 @@
 	/**	 * @author Mk-10:cellfusion	 */
 	public class ScrollbarSample extends Sprite
 	{
-		private var _svv:ScrollbarViewVertical;
+		private var _verticalView:ScrollbarViewVertical;
+		private var _horizonView:ScrollbarViewHorizon;
 		private var _mask:Sprite;
 		private var _sp:Sprite;
-		private var _svv_sb:IScrollbar;
-		private var _svh:ScrollbarViewHorizon;
-		private var _svh_sb:Scrollbar;
+		private var _vertical_sb:IScrollbar;
+		private var _horizon_sb:Scrollbar;
 
 		public function ScrollbarSample()
 		{
@@ -27,13 +27,13 @@
 			stage.scaleMode = StageScaleMode.NO_SCALE;
 			AbstractUI.initialize(this);
 
-			_svv = new ScrollbarViewVertical();
-			_svv.x = 520;
-			addChild(_svv);
+			_verticalView = new ScrollbarViewVertical();
+			_verticalView.x = 520;
+			addChild(_verticalView);
 			
-			_svh = new ScrollbarViewHorizon();
-			_svh.y = 370;
-			addChild(_svh);
+			_horizonView = new ScrollbarViewHorizon();
+			_horizonView.y = 370;
+			addChild(_horizonView);
 
 			_mask = new Sprite();
 			_sp = new Sprite();
@@ -56,25 +56,62 @@
 			_sp.graphics.endFill();
 
 			
-			_svv_sb = new Scrollbar(Scrollbar.VERTICAL, _svv);
+			_vertical_sb = new Scrollbar(Scrollbar.VERTICAL, _verticalView);
 //			_svv_sb.setMargin(2, 2, 2, 2);
-			_svv_sb.addEventListener(ScrollEvent.SCROLL_CHANGED, scrollChangeHandler);
-			_svv_sb.initialize(_sp.height, _mask.height);
+			_vertical_sb.addEventListener(ScrollEvent.SCROLL_CHANGE, veticalScrollChangeHandler);
+			_vertical_sb.addEventListener(ScrollEvent.SCROLL_START, veticalScrollStartHandler);
+			_vertical_sb.addEventListener(ScrollEvent.SCROLL_PROGRESS, veticalScrollProgressHandler);
+			_vertical_sb.addEventListener(ScrollEvent.SCROLL_COMPLETE, veticalScrollCompleteHandler);
+			_vertical_sb.addEventListener(ScrollEvent.SCROLL_DRAG_START, veticalScrollDragStartHandler);
+			_vertical_sb.addEventListener(ScrollEvent.SCROLL_DRAG_PROGRESS, veticalScrollDragProgressHandler);
+			_vertical_sb.addEventListener(ScrollEvent.SCROLL_DRAG_COMPLETE, veticalScrollDragCompleteHandler);
+			_vertical_sb.initialize(_sp.height, _mask.height);
 
-			_svh_sb = new Scrollbar(Scrollbar.HORIZON, _svh);
+			_horizon_sb = new Scrollbar(Scrollbar.HORIZON, _horizonView);
 //			_svh_sb.setMargin(2, 2, 2, 2);
-			_svh_sb.addEventListener(ScrollEvent.SCROLL_CHANGED, svhScrollChangeHandler);
-			_svh_sb.initialize(_sp.width, _mask.width);
+			_horizon_sb.addEventListener(ScrollEvent.SCROLL_CHANGE, horizonScrollChangeHandler);
+			_horizon_sb.initialize(_sp.width, _mask.width);
 		}
 
-		private function svhScrollChangeHandler(event:ScrollEvent):void
+		private function veticalScrollDragCompleteHandler(event:ScrollEvent):void
 		{
-			_sp.x = (_mask.width - _sp.width) * _svh_sb.scrollPercent;
+			trace("verticalScrollDragComplete");
 		}
 
-		private function scrollChangeHandler(event:ScrollEvent):void
+		private function veticalScrollDragProgressHandler(event:ScrollEvent):void
 		{
-			_sp.y = (_mask.height - _sp.height) * _svv_sb.scrollPercent;
+			trace("verticalScrollDragProgress");
+		}
+
+		private function veticalScrollDragStartHandler(event:ScrollEvent):void
+		{
+			trace("verticalScrollDargStart");
+		}
+
+		private function veticalScrollCompleteHandler(event:ScrollEvent):void
+		{
+			trace("verticalScrollComplete");
+		}
+
+		private function veticalScrollProgressHandler(event:ScrollEvent):void
+		{
+			trace("verticalScrollProgress");
+		}
+
+		private function veticalScrollStartHandler(event:ScrollEvent):void
+		{
+			trace("verticalScrollStart");
+		}
+
+		private function horizonScrollChangeHandler(event:ScrollEvent):void
+		{
+			_sp.x = (_mask.width - _sp.width) * _horizon_sb.scrollPercent;
+		}
+
+		private function veticalScrollChangeHandler(event:ScrollEvent):void
+		{
+			trace("verticalScrollChange");
+			_sp.y = (_mask.height - _sp.height) * _vertical_sb.scrollPercent;
 		}
 	}
 }

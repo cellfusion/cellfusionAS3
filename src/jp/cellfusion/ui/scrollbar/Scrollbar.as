@@ -1,14 +1,23 @@
 package jp.cellfusion.ui.scrollbar
 {
-	import jp.cellfusion.logger.Logger;
 	import jp.cellfusion.ui.events.ScrollEvent;
 
 	import flash.display.Sprite;
 	import flash.events.EventDispatcher;
 
-	[Event( name="scrollChanged", type="jp.cellfusion.ui.events.ScrollEvent" )]
+	[Event( name="scrollChange", type="jp.cellfusion.ui.events.ScrollEvent" )]
+	[Event( name="scrollStart", type="jp.cellfusion.ui.events.ScrollEvent" )]
+	[Event( name="scrollProgress", type="jp.cellfusion.ui.events.ScrollEvent" )]
+	[Event( name="scrollComplete", type="jp.cellfusion.ui.events.ScrollEvent" )]
+	[Event( name="scrollDragStart", type="jp.cellfusion.ui.events.ScrollEvent" )]
+	[Event( name="scrollDragProgress", type="jp.cellfusion.ui.events.ScrollEvent" )]
+	[Event( name="scrollDragComplete", type="jp.cellfusion.ui.events.ScrollEvent" )]
 	/**
 	 * @author Mk-10:cellfusion
+	 * 汎用スクロールバー
+	 * 横向きにも対応
+	 * new Scrollbar(Scrollbar.HORIZON);
+	 * Event を増やして Drag 時や Complete 時に処理を追加出来るようにした
 	 */
 	public class Scrollbar extends EventDispatcher implements IScrollbar
 	{
@@ -43,7 +52,7 @@ package jp.cellfusion.ui.scrollbar
 		 * // 初期化
 		 * scrollbar.initialize(500, 100);
 		 * 
-		 * // 初期化後に viewSize と targetSize は個別に変更可能になる
+		 * // 初期化後に viewSize（見える範囲） と targetSize（実際の大きさ） は個別に変更可能になる
 		 * scrollbar.viewSize = 100;
 		 * scrollbar.targetSize = 500;
 		 * 
@@ -85,7 +94,7 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function initialize(target:Number, view:Number):void
 		{
-			Logger.trace("initialize target:" + target + ", view:" + view);
+//			Logger.trace("initialize target:" + target + ", view:" + view);
 			_targetSize = target;
 			_viewSize = view;
 
@@ -118,11 +127,6 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function scroll(target:Number):void
 		{
-			Logger.debug('SimpleScrollbar.scroll');
-			Logger.debug('target:' + target);
-			Logger.debug('maxScrollHeight' + maxScrollSize);
-			Logger.debug('_scrollTween' + _scrollTween);
-
 			var t:Number = Math.min(Math.max(0, target), 1) * maxScrollSize;
 			_scrollTween.scroll(this, t);
 		}
@@ -132,12 +136,6 @@ package jp.cellfusion.ui.scrollbar
 		 */
 		public function scrollHoge(target:Number):void
 		{
-			Logger.debug('SimpleScrollbar.scrollHoge');
-			Logger.debug('target:' + target);
-			Logger.debug('minScrollPos:' + minScrollPos);
-			Logger.debug('maxScrollPos:' + maxScrollPos);
-			Logger.debug('_scrollTween' + _scrollTween);
-
 			// ターゲットがはみ出してないか確認
 			var t:Number = Math.min(Math.max(minScrollPos, target), maxScrollPos);
 			_scrollTween.scroll(this, t);
@@ -207,10 +205,10 @@ package jp.cellfusion.ui.scrollbar
 
 		public function set scrollPos(value:Number):void
 		{
-			Logger.trace("scrollPos:" + value);
+//			Logger.trace("scrollPos:" + value);
 			_scrollPos = value;
 
-			dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_CHANGED));
+			dispatchEvent(new ScrollEvent(ScrollEvent.SCROLL_CHANGE));
 			
 			draw(value);
 		}
