@@ -95,14 +95,12 @@ package jp.cellfusion.ui.video
 
 		private function connectionNsStatusHandler(event:NetStatusEvent):void
 		{
-			trace("NetConnection netStatus", event.info.code);
 			if (event.info.code == "NetConnection.Connect.Success") {
 				if (_ns == null) {
 					_ns = new NetStream(_nc);
 					_ns.addEventListener(IOErrorEvent.IO_ERROR, nsIoError);
 					_ns.addEventListener(NetStatusEvent.NET_STATUS, nsStatus);
 					_ns.client = {onMetaData:function(param:Object):void {
-						trace("onMetaData", param);
 						if (!_isPlay) {
 							// _ns.seek(0);
 						}
@@ -177,8 +175,6 @@ package jp.cellfusion.ui.video
 		 */
 		public function play(request:URLRequest = null, play:Boolean = false):void
 		{
-			trace(this, "play", _isPlay, request, _nc.connected);
-
 			if (request) {
 				_request = request;
 
@@ -286,7 +282,6 @@ package jp.cellfusion.ui.video
 
 		private function complete():void
 		{
-			trace(this, "complete");
 			pause();
 
 			if (_repeat) {
@@ -365,20 +360,12 @@ package jp.cellfusion.ui.video
 			}
 
 			if (_isPlay && _nc.connected && time > 0 && duration > 0) {
-				// var time:Number = Math.floor(time * 10) / 10;
-				// var duration:Number = Math.floor(duration * 10) / 10;
-				// if (time >= duration) {
-				// complete();
-				// }
-
 				if (_prevTime == time && countup) {
 					_count++;
 				} else {
 					_count = 0;
 					_prevTime = time;
 				}
-
-				// trace("countup", countup, _bufferEmpty, _count, _timeout);
 
 				if (_count > _timeout) {
 					complete();
@@ -388,11 +375,9 @@ package jp.cellfusion.ui.video
 
 		private function nsStatus(event:NetStatusEvent):void
 		{
-			trace("NetStream nsStatus", event.info.code);
-			trace(time, duration, _duration, _isPlay, _nc.connected);
-
 			switch (event.info.code) {
 				case "NetStream.Buffer.Empty":
+					if (_count > 0) return;
 					dispatchEvent(new VideoEvent(VideoEvent.BUFFER_EMPTY));
 					break;
 				case "NetStream.Buffer.Full":
@@ -404,15 +389,8 @@ package jp.cellfusion.ui.video
 					_bufferEmpty = false;
 					break;
 				case "NetStream.Play.Start":
-					// dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));
 					break;
 				case "NetStream.Play.Stop":
-					// dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));
-					// var time:Number = Math.floor(time * 10) / 10;
-					// var duration:Number = Math.floor(duration * 10) / 10;
-					// if (time >= duration) {
-					// complete();
-					// }
 					break;
 				case "NetStream.Play.StreamNotFound":
 					dispatchEvent(new VideoEvent(VideoEvent.PLAY_STREAM_NOT_FOUND));
