@@ -1,1 +1,1 @@
-package jp.cellfusion.ui.video.ui{	/**	 * @author Mk-10:cellfusion	 */	public interface ISeekBar 	{	}}
+package jp.cellfusion.ui.video.ui{	/**	 * @author Mk-10:cellfusion	 */	public interface ISeekBar extends IControllerParts	{	}}

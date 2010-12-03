@@ -1,38 +1,73 @@
-package jp.cellfusion.ui.button 
+package jp.cellfusion.ui.button
 {
 	import flash.display.Sprite;
+	import flash.display.MovieClip;
+	import flash.events.MouseEvent;
 
 	/**
 	 * @author Mk-10:cellfusion
 	 */
-	public class ToggleButton extends Sprite implements IToggleButton 
+	public class ToggleButton extends MovieClip implements IToggleButton,IButton
 	{
+		public var onButton:IButton;
+		public var offButton:IButton;
 		protected var _current:IButton;
-		protected var _on:IButton;
-		protected var _off:IButton;
-		private var _enabled:Boolean;
+		private var _invisible:Boolean;
 
-		public function ToggleButton(on:IButton = null, off:IButton = null)
+		public function ToggleButton(invisible:Boolean = true)
 		{
-			_on = on || this['onButton'];
-			_off = off || this['offButton'];
-			
-			if (_on == null && _off == null) {
-				throw new Error('ToggleButton に必要な Button が存在しません');
-				return;
-			}
-			
+			_invisible = invisible;
+
+			mouseChildren = false;
+			buttonMode = true;
+			addEventListener(MouseEvent.CLICK, click);
+			addEventListener(MouseEvent.ROLL_OVER, rollover);
+			addEventListener(MouseEvent.ROLL_OUT, rollout);
+
 			change('on');
 		}
-		
+
+		private function rollout(event:MouseEvent):void
+		{
+			if (enabled) {
+				atRollout();
+			}
+		}
+
+		private function rollover(event:MouseEvent):void
+		{
+			if (enabled) {
+				atRollover();
+			}
+		}
+
+		private function click(event:MouseEvent):void
+		{
+			if (enabled) {
+				atClick();
+			}
+		}
+
+		private function toggle():void
+		{
+			_current == onButton ? change('off') : change('on');
+		}
+
 		public function change(state:String):void
 		{
-			_current = state == 'on' ? _on : _off;
-			
-			_on.visible = state == 'on';
-			_on.enabled = state == 'on';
-			_off.visible = state == 'off';
-			_off.enabled = state == 'off';
+			_current = state == 'on' ? onButton : offButton;
+
+			if (_invisible) {
+				onButton.visible = state == 'on';
+				offButton.visible = state == 'off';
+			}
+
+			onButton.enabled = state == 'on';
+			offButton.enabled = state == 'off';
+
+			hitArea = Sprite(state == 'on' ? onButton : offButton);
+
+			mouseChildren = false;
 		}
 
 		public function atClick():void
@@ -40,41 +75,29 @@ package jp.cellfusion.ui.button
 			_current.atClick();
 			toggle();
 		}
-		
-		public function atRollover():void
-		{
-			_current.atRollover();
-		}
-		
+
 		public function atRollout():void
 		{
 			_current.atRollout();
 		}
-		
-		public function atEnable():void
+
+		public function atRollover():void
 		{
-			_current.atEnable();
+			_current.atRollover();
 		}
-		
-		public function atDisable():void
+
+		override public function set enabled(value:Boolean):void
 		{
-			_current.atDisable();
-		}
-		
-		public function get enabled():Boolean
-		{
-			return _enabled;
-		}
-		
-		public function set enabled(value:Boolean):void
-		{
-			_enabled = value;
+			super.enabled = value;
 			value ? atEnable() : atDisable();
 		}
-		
-		private function toggle():void
+
+		public function atEnable():void
 		{
-			_current == _on ? change('on') : change('off');
+		}
+
+		public function atDisable():void
+		{
 		}
 	}
 }

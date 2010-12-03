@@ -90,8 +90,25 @@ package jp.cellfusion.sound
 		public function soloExecute():void
 		{
 		}
-
+		
+		/**
+		 * BGM の場合
+		 */
 		public function play(startTime:Number = 0, loops:int = 0):void
+		{
+			if (_type == BGM) {
+				playBGM(startTime, loops);
+			} else {
+				playSE(startTime);
+			}
+		}
+
+		private function playSE(startTime:Number = 0):void
+		{
+			_channel = _sound.play(startTime, 0, _soundTransform);
+		}
+
+		private function playBGM(startTime:Number = 0, loops:int = 0):void
 		{
 			if (_state == STATE_PLAY) {
 				return;
@@ -104,6 +121,7 @@ package jp.cellfusion.sound
 				_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
 			}
 		}
+
 
 		private function soundComplete(event:Event):void
 		{

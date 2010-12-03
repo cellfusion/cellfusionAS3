@@ -1,17 +1,17 @@
 package jp.cellfusion.ui.scrollbar
 {
-	import jp.cellfusion.ui.events.ScrollEvent;
+	import jp.cellfusion.events.ScrollEvent;
 
 	import flash.display.Sprite;
 	import flash.events.EventDispatcher;
 
-	[Event( name="scrollChange", type="jp.cellfusion.ui.events.ScrollEvent" )]
-	[Event( name="scrollStart", type="jp.cellfusion.ui.events.ScrollEvent" )]
-	[Event( name="scrollProgress", type="jp.cellfusion.ui.events.ScrollEvent" )]
-	[Event( name="scrollComplete", type="jp.cellfusion.ui.events.ScrollEvent" )]
-	[Event( name="scrollDragStart", type="jp.cellfusion.ui.events.ScrollEvent" )]
-	[Event( name="scrollDragProgress", type="jp.cellfusion.ui.events.ScrollEvent" )]
-	[Event( name="scrollDragComplete", type="jp.cellfusion.ui.events.ScrollEvent" )]
+	[Event( name="scrollChange", type="jp.cellfusion.events.ScrollEvent" )]
+	[Event( name="scrollStart", type="jp.cellfusion.events.ScrollEvent" )]
+	[Event( name="scrollProgress", type="jp.cellfusion.events.ScrollEvent" )]
+	[Event( name="scrollComplete", type="jp.cellfusion.events.ScrollEvent" )]
+	[Event( name="scrollDragStart", type="jp.cellfusion.events.ScrollEvent" )]
+	[Event( name="scrollDragProgress", type="jp.cellfusion.events.ScrollEvent" )]
+	[Event( name="scrollDragComplete", type="jp.cellfusion.events.ScrollEvent" )]
 	/**
 	 * @author Mk-10:cellfusion
 	 * 汎用スクロールバー

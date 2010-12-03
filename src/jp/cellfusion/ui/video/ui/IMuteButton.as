@@ -5,7 +5,7 @@ package jp.cellfusion.ui.video.ui
 	/**
 	 * @author Mk-10:cellfusion
 	 */
-	public interface IMuteButton extends IToggleButton
+	public interface IMuteButton extends IToggleButton, IControllerParts
 	{
 	}
 }

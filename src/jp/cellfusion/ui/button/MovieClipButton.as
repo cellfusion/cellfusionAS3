@@ -1,12 +1,11 @@
 package jp.cellfusion.ui.button 
 {
-	import jp.cellfusion.ui.events.ButtonEvent;
-
 	import flash.display.FrameLabel;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
+	import jp.cellfusion.events.ButtonEvent;
 
 	/**
 	 * @author Mk-10:cellfusion

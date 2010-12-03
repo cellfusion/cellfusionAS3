@@ -1,4 +1,4 @@
-package jp.cellfusion.ui.events 
+package jp.cellfusion.events 
 {
 	import flash.events.MouseEvent;
 

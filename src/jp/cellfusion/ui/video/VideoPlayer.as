@@ -1,19 +1,576 @@
-package jp.cellfusion.ui.video {	import jp.cellfusion.sound.ISoundObject;
-	import jp.cellfusion.sound.SoundManager;	import jp.cellfusion.sound.VideoSound;	import jp.cellfusion.ui.events.VideoEvent;	import jp.cellfusion.ui.events.VideoProgressEvent;	import flash.display.MovieClip;	import flash.display.Sprite;	import flash.events.Event;	import flash.events.IOErrorEvent;	import flash.events.MouseEvent;	import flash.events.NetStatusEvent;	import flash.media.SoundTransform;	import flash.media.Video;	import flash.net.NetConnection;	import flash.net.NetStream;	import flash.net.URLRequest;	/**	 * @author Mk-10:cellfusion	 * 走り書きとか	 * NetStream の管理や NetConnection の管理を主に行うようにする予定	 * new VideoPlayer(new VideoConfig());	 * Config インスタンスによって実装機能などを変える仕組み等々	 */	public class VideoPlayer extends Sprite implements IVideoPlayer	{		private var _nc:NetConnection;		private var _ns:NetStream;		private var _video:Video;		private var _playButton:Sprite;		private var _pauseButton:Sprite;		private var _stopButton:Sprite;		private var _muteButton:Sprite;		private var _backButton:Sprite;		private var _forwordButton:Sprite;		private var _seekBar:Sprite;		private var _volumeBar:Sprite;		private var _metadata:Object;		private var _duration:Number;		private var _videoWidth:Number;		private var _videoHeight:Number;		private var _dragStartX:Number;
-		private var _isPlay:Boolean = false;		private var _isDragStartPlay:Boolean = false;		private var _prevVolume:Number;		private var _autoRewind:Boolean = false;		private var _scrubbing:Boolean = false;		private var _completed:Boolean = false;		private var _repeat:Boolean = false;		private var _request:URLRequest;
-		private var _sound:ISoundObject;
+package jp.cellfusion.ui.video
+{
+	import jp.cellfusion.ui.video.ui.SeekBarBase;
+	import jp.cellfusion.events.VideoEvent;
+	import jp.cellfusion.events.VideoProgressEvent;
+	import jp.cellfusion.sound.ISoundObject;
+	import jp.cellfusion.sound.SoundManager;
+	import jp.cellfusion.sound.VideoSound;
+	import jp.cellfusion.ui.video.ui.IControllerParts;
+
+	import flash.display.Sprite;
+	import flash.events.Event;
+	import flash.events.IOErrorEvent;
+	import flash.events.NetStatusEvent;
+	import flash.media.SoundTransform;
+	import flash.media.Video;
+	import flash.net.NetConnection;
+	import flash.net.NetStream;
+	import flash.net.Responder;
+	import flash.net.URLRequest;
+
+	/**
+	 * @author Mk-10:cellfusion (www.cellfusion.jp)
+	 */
+	public class VideoPlayer extends Sprite implements IVideoPlayer
+	{
+		private var _nc:NetConnection;
+		private var _ns:NetStream;
+		private var _video:Video;
 		private var _soundId:String;
-		/**		 * @eventType jp.cellfusion.ui.video.VideoEvent.METADATA_RECEIVED		 */		[Event( name="metadataReceived", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="playStart", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="playPause", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="playResume", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="playStop", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="complete", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="bufferEmpty", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="bufferFull", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="bufferFlush", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="playStreamNotFound", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="playFailed", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="seekFailed", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="seekInvalidTime", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="seekNotify", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="loadStart", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="loadComplete", type="jp.cellfusion.ui.video.VideoEvent" )]		[Event( name="progress", type="jp.cellfusion.ui.video.VideoProgressEvent" )]				public function VideoPlayer(id:String, width:Number = 640, height:Number = 480)		{			_nc = new NetConnection();			_nc.connect(null);						_ns = new NetStream(_nc);			_ns.addEventListener(IOErrorEvent.IO_ERROR, nsIoError);			_ns.addEventListener(NetStatusEvent.NET_STATUS, nsStatus);			_ns.client = {				onMetaData:function(param:Object):void {					if (!_isPlay) {						_ns.seek(0);					}					_metadata = param;					_duration = param.duration;					_videoWidth = param.width;					_videoHeight = param.height;										dispatchEvent(new VideoEvent(VideoEvent.METADATA_RECEIVED));				}			};						_soundId = id;						// SoundManager に登録			_sound = SoundManager.instance.add(new VideoSound(_ns), id);						_video = new Video(width, height);			_video.width = width;			_video.height = height;						_video.attachNetStream(_ns);						addChild(_video);		}		/**		 * 再生する		 */		public function play(request:URLRequest = null):void		{			_isPlay = true;						if (request) {				_ns.play(request.url);				loadStart();			} else if (_completed) {				_completed = false;				seek(0);				_ns.resume();			} else if (_request){				_ns.play(_request.url);				loadStart();			} else {				_ns.resume();			}						stateChange();			addEventListener(Event.ENTER_FRAME, update);			dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));		}		/**		 * 停止する		 */		public function pause():void		{			_isPlay = false;			_ns.pause();			stateChange();			removeEventListener(Event.ENTER_FRAME, update);			dispatchEvent(new VideoEvent(VideoEvent.PLAY_PAUSE));		}		/**		 * 内部処理的に一時停止したい場合に使う		 */		private function temporaryPause():void		{			_ns.pause();			removeEventListener(Event.ENTER_FRAME, update);		}		/**		 * 		 */		public function stop():void		{			_isPlay = false;			_ns.pause();			_ns.seek(0);			stateChange();			removeEventListener(Event.ENTER_FRAME, update);						// 表示を更新			reset();						dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));		}		/**		 * リジューム		 */		public function resume():void		{			_isPlay = true;			_ns.resume();			stateChange();			addEventListener(Event.ENTER_FRAME, update);			dispatchEvent(new VideoEvent(VideoEvent.PLAY_RESUME));		}		private function temporaryResume():void		{			_ns.resume();			addEventListener(Event.ENTER_FRAME, update);		}		/**		 * ポーズを入れ替える		 */		public function togglePause():void		{			_isPlay != _isPlay;			_ns.togglePause();			stateChange();		}		private function stateChange():void		{			if (_playButton && _pauseButton) {				_playButton.visible = !_isPlay;				_playButton.buttonMode = !_isPlay;				_pauseButton.visible = _isPlay;				_pauseButton.buttonMode = _isPlay;			} else {				if (_playButton) {					_playButton.buttonMode = !_isPlay;					if (_playButton is MovieClip) {											}				}								if (_pauseButton) {					_pauseButton.buttonMode = _isPlay;					if (_pauseButton is MovieClip) {											}				}			}		}		/**		 * 読み込む		 */		public function load(request:URLRequest):void		{			_ns.play(request.url);			loadStart();						// play すると読み込みと同時に動き始めるので動きを止める			_ns.pause();			_ns.seek(0);			//			addEventListener(Event.ENTER_FRAME, update);		}		/**		 * シーク		 */		public function seek(offset:Number):void		{			_ns.seek(offset);		}		/**		 * 接続を切る		 */		public function close():void		{			stop();
-			SoundManager.instance.remove(_soundId);
-						_ns.close();		}		public function get time():Number		{			return _ns.time;		}		public function get duration():Number		{			return _duration;		}		public function get bytesLoaded():Number		{			return _ns.bytesLoaded;		}		public function get bytesTotal():Number		{			return _ns.bytesTotal;		}		public function get bufferLength():Number		{			return _ns.bufferLength;		}		public function get bufferTime():Number		{			return _ns.bufferTime;		}				public function set bufferTime(value:Number):void		{			_ns.bufferTime = value;		}		public override function get soundTransform():SoundTransform		{			return _ns.soundTransform;		}		public function get metadata():Object		{			return _metadata;		}		public function get volume():Number		{//			var trans:SoundTransform = _ns.soundTransform;//			return trans.volume;			return _sound.volume;		}		public function set volume(offset:Number):void		{			// TODO SoundManager 経由で音量は VideoSound 経由に変更			_sound.volume = offset;			//			try {//				var trans:SoundTransform = _ns.soundTransform;//				trans.volume = offset;//				_ns.soundTransform = trans;//			} catch (e:Error) {//				Logger.error(e.message);//			}						try {				_muteButton["onButton"].visible = offset != 0;				_muteButton["onButton"].buttonMode = offset != 0;				_muteButton["offButton"].visible = offset == 0;				_muteButton["offButton"].buttonMode = offset == 0;			} catch (e:Error) {//				Logger.error(e.message);			}						try {				_volumeBar["thumb"].x = _volumeBar["track"].width * offset;				_volumeBar["progress"].buttonMode = false;				_volumeBar["progress"].mouseEnabled = false;				_volumeBar["progress"].scaleX = offset;			} catch(e:Error) {//				Logger.error(e.message);			}		}		public function get autoRewind():Boolean		{			return _autoRewind;		}		public function set autoRewind(value:Boolean):void		{			_autoRewind = value;		}		public function set ui(value:Sprite):void		{			try {				playButton = value["playButton"];			} catch (e:Error) {	//				Logger.error(e.message);			}						try { 				pauseButton = value["pauseButton"];			} catch (e:Error) {//				Logger.error(e.message);			}						try {				playPauseButton = value["playPauseButton"];			} catch (e:Error) {//				Logger.error(e.message);			}						try {				stopButton = value["stopButton"];			} catch (e:Error) {//				Logger.error(e.message);			}						try {				seekBar = value["seekBar"];			} catch (e:Error) {//				Logger.error(e.message);			}						try {				volumeBar = value["volumeBar"];			} catch (e:Error) {//				Logger.error(e.message);			}						try {				muteButton = value["muteButton"];			} catch (e:Error) {//				Logger.error(e.message);			}						try {				backButton = value["backButton"];			} catch (e:Error) {//				Logger.error(e.message);			}						try {				forwordButton = value["forwordButton"];			} catch (e:Error) {//				Logger.error(e.message);			}		}		public function set playButton(value:Sprite):void		{			_playButton = value;			if (_playButton is MovieClip) {				MovieClip(_playButton).gotoAndStop("up");				MovieClip(_playButton).addEventListener(MouseEvent.ROLL_OVER, function(event:MouseEvent):void {					MovieClip(_playButton).gotoAndStop("over");				});				MovieClip(_playButton).addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent):void {					MovieClip(_playButton).gotoAndStop("up");				});			}			_playButton.addEventListener(MouseEvent.CLICK, playButtonClick);			stateChange();		}		public function set pauseButton(value:Sprite):void		{			_pauseButton = value;			if (_pauseButton is MovieClip) {				MovieClip(_pauseButton).gotoAndStop("up");				MovieClip(_pauseButton).addEventListener(MouseEvent.ROLL_OVER, function(event:MouseEvent):void {					MovieClip(_pauseButton).gotoAndStop("over");				});				MovieClip(_pauseButton).addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent):void {					MovieClip(_pauseButton).gotoAndStop("up");				});			}			_pauseButton.addEventListener(MouseEvent.CLICK, pauseButtonClick);			stateChange();		}		public function set playPauseButton(value:Sprite):void		{			try {				playButton = value["playButton"];			} catch (e:Error) {//				Logger.error(e.message);				}						try { 				pauseButton = value["pauseButton"];			} catch (e:Error) {//				Logger.error(e.message);			}		}		public function set stopButton(value:Sprite):void		{			_stopButton = value;			_stopButton.buttonMode = true;			_stopButton.addEventListener(MouseEvent.CLICK, stopButtonClick);		}		public function set seekBar(value:Sprite):void		{			_seekBar = value;						try {				_seekBar["track"].buttonMode = true;				_seekBar["track"].addEventListener(MouseEvent.CLICK, seekBarTrackClick);			} catch (e:Error) {//				Logger.warning(e.message);			}						try {				if (_seekBar["thumb"] is MovieClip) {					MovieClip(_seekBar["thumb"]).gotoAndStop("up");				}				_seekBar["thumb"].buttonMode = true;				_seekBar["thumb"].addEventListener(MouseEvent.MOUSE_DOWN, seekBarThumbDragStart);			} catch (e:Error) {//				Logger.warning(e.message);			}						try {				_seekBar["progress"].buttonMode = false;				_seekBar["progress"].mouseEnabled = false;				_seekBar["progress"].scaleX = 0;			} catch(e:Error) {//				Logger.warning(e.message);			}		}		public function set volumeBar(value:Sprite):void		{			_volumeBar = value;						try {				_volumeBar["track"].buttonMode = true;				_volumeBar["track"].addEventListener(MouseEvent.CLICK, volumeBarTrackClick);			} catch(e:Error) {//				Logger.warning(e.message);			}						try {				_volumeBar["thumb"].buttonMode = true;				_volumeBar["thumb"].addEventListener(MouseEvent.MOUSE_DOWN, volumeBarThumbDragStart);				_volumeBar["thumb"].x = _volumeBar["track"].width * volume;			} catch(e:Error) {//				Logger.warning(e.message);			}						try {				_volumeBar["progress"].scaleX = volume;			} catch(e:Error) {//				Logger.warning(e.message);			}		}		public function set muteButton(value:Sprite):void		{			_muteButton = value;						try {				if (_muteButton["onButton"] is MovieClip) {					MovieClip(_muteButton["onButton"]).gotoAndStop("up");					MovieClip(_muteButton["onButton"]).addEventListener(MouseEvent.ROLL_OVER, function(event:MouseEvent):void {						MovieClip(_muteButton["onButton"]).gotoAndStop("over");					});					MovieClip(_muteButton["onButton"]).addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent):void {						MovieClip(_muteButton["onButton"]).gotoAndStop("up");					});				}				_muteButton["onButton"].buttonMode = true;				_muteButton["onButton"].addEventListener(MouseEvent.CLICK, muteOnButtonClick);			} catch (e:Error) {//				Logger.warning(e.message);			}						try {				if (_muteButton["offButton"] is MovieClip) {					MovieClip(_muteButton["offButton"]).gotoAndStop("up");					MovieClip(_muteButton["offButton"]).addEventListener(MouseEvent.ROLL_OVER, function(event:MouseEvent):void {						MovieClip(_muteButton["offButton"]).gotoAndStop("over");					});					MovieClip(_muteButton["offButton"]).addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent):void {						MovieClip(_muteButton["offButton"]).gotoAndStop("up");					});				}				_muteButton["offButton"].buttonMode = false;				_muteButton["offButton"].visible = false;				_muteButton["offButton"].addEventListener(MouseEvent.CLICK, muteOffButtonClick);			} catch (e:Error) {//				Logger.warning(e.message);			}		}		public function set backButton(value:Sprite):void		{			_backButton = value;			if (_backButton is MovieClip) {				MovieClip(_backButton).gotoAndStop("up");				MovieClip(_backButton).addEventListener(MouseEvent.ROLL_OVER, function(event:MouseEvent):void {					MovieClip(_backButton).gotoAndStop("over");				});				MovieClip(_backButton).addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent):void {					MovieClip(_backButton).gotoAndStop("up");				});			}			_backButton.buttonMode = true;			_backButton.addEventListener(MouseEvent.CLICK, backButtonClick);		}		public function set forwordButton(value:Sprite):void		{			_forwordButton = value;			if (_forwordButton is MovieClip) {				MovieClip(_forwordButton).gotoAndStop("up");				MovieClip(_forwordButton).addEventListener(MouseEvent.ROLL_OVER, function(event:MouseEvent):void {					MovieClip(_forwordButton).gotoAndStop("over");				});				MovieClip(_forwordButton).addEventListener(MouseEvent.ROLL_OUT, function(event:MouseEvent):void {					MovieClip(_forwordButton).gotoAndStop("up");				});			}			_forwordButton.buttonMode = true;			_forwordButton.addEventListener(MouseEvent.CLICK, forwordButtonClick);		}		override public function get width():Number		{			return _video.width;		}		override public function set width(value:Number):void		{			setSize(value, height);		}		override public function get height():Number		{			return _video.height;		}		override public function set height(value:Number):void		{			setSize(width, value);		}				public function setSize(width:Number, height:Number):void		{			// TODO scaleMode実装						// 指定された値に収まるように大きさを変更する			var ws:Number = width / _videoWidth;			var hs:Number = height / _videoHeight;			var scale:Number = Math.min(ws, hs);						_video.width = scale * _videoWidth;			_video.height = scale * _videoHeight;		}		private function reset():void		{			try {				_seekBar["thumb"].x = _seekBar["progress"].x;				_seekBar["progress"].scaleX = 0;			} catch (e:Error) {//				Logger.warning(e.message);			}		}		private function complete():void		{			pause();						if (_repeat) {				seek(0);				play();			} else if (_autoRewind) {				seek(0);				reset();			}						_completed = true;			dispatchEvent(new VideoEvent(VideoEvent.COMPLETE));						removeEventListener(Event.ENTER_FRAME, update);		}		private function loadStart():void		{			dispatchEvent(new VideoEvent(VideoEvent.LOAD_START));			addEventListener(Event.ENTER_FRAME, loadProgress);		}		private function loadProgress(event:Event):void		{			var loaded:uint = _ns.bytesLoaded;			var total:uint = _ns.bytesTotal;						dispatchEvent(new VideoProgressEvent(VideoProgressEvent.PROGRESS, false, false, loaded, total));						if (_seekBar) {				_seekBar["track"].scaleX = bytesLoaded / bytesTotal;			}						if (loaded >= total && total > 0) {				loadComplete();			}		}		private function loadComplete():void		{			dispatchEvent(new VideoEvent(VideoEvent.LOAD_COMPLETE));			removeEventListener(Event.ENTER_FRAME, loadProgress);		}		private function update(event:Event = null):void		{			// 存在しない場合は終了する			if (!_seekBar) {				return;			}						try {				_seekBar["thumb"].x = _seekBar["track"].width * (time / duration) + _seekBar["track"].x;				_seekBar["progress"].scaleX = time / duration;				_seekBar["track"].scaleX = bytesLoaded / bytesTotal;			} catch(e:Error) {//				Logger.warning(e.message);			}		}		private function playButtonClick(event:MouseEvent):void		{			play();		}		private function pauseButtonClick(event:MouseEvent):void		{			pause();		}		private function stopButtonClick(event:MouseEvent):void		{			stop();		}		private function volumeBarTrackClick(event:MouseEvent):void		{			var x:Number = _volumeBar["track"].mouseX;			x -= _volumeBar["track"].x;						var p:Number = x / _volumeBar["track"].width;			volume = p;						_volumeBar["thumb"].x = _volumeBar["track"].width * p;			_volumeBar["progress"].scaleX = p;		}		private function seekBarTrackClick(event:MouseEvent):void		{			var x:Number = _seekBar["track"].mouseX;			x -= _seekBar["track"].x;						var p:Number = x / _seekBar["track"].width;			seek(duration * p);						_seekBar["thumb"].x = _seekBar["track"].width * p;		}		private function muteOnButtonClick(event:MouseEvent):void		{			_prevVolume = volume;			volume = 0;		}		private function muteOffButtonClick(event:MouseEvent):void		{			volume = _prevVolume;		}		private function backButtonClick(event:MouseEvent):void		{			seek(0);			reset();		}		private function forwordButtonClick(event:MouseEvent):void		{			var framerate:Number = _metadata.videoframerate || _metadata.framerate;			var minCheckSeconds:Number = 1 / framerate;						var seconds:Number = Math.floor(_duration * 10) / 10;			seek(seconds + minCheckSeconds);		}		private function volumeBarThumbDragStart(event:MouseEvent):void		{			_volumeBar["thumb"].removeEventListener(MouseEvent.MOUSE_DOWN, volumeBarThumbDragStart);			_dragStartX = _volumeBar["thumb"].mouseX;						_volumeBar["thumb"].addEventListener(Event.ENTER_FRAME, volumeBarThumbDrag);			_volumeBar.root.stage.addEventListener(MouseEvent.MOUSE_UP, volumeBarThumbDragEnd);		}		private function volumeBarThumbDrag(event:Event):void		{			var x:Number = _volumeBar.mouseX + _dragStartX;			_volumeBar["thumb"].x = Math.min(Math.max(0, x), _volumeBar["track"].width);						var p:Number = (_volumeBar["thumb"].x - _volumeBar["track"].x) / _volumeBar["track"].width;			volume = p;		}		private function volumeBarThumbDragEnd(event:MouseEvent):void		{			_volumeBar.root.stage.removeEventListener(MouseEvent.MOUSE_UP, volumeBarThumbDragEnd);			_volumeBar["thumb"].removeEventListener(Event.ENTER_FRAME, volumeBarThumbDrag);						var x:Number = _volumeBar.mouseX + _dragStartX;			_volumeBar["thumb"].x = Math.min(Math.max(0, x), _volumeBar["track"].width);						var p:Number = (_volumeBar["thumb"].x - _volumeBar["track"].x) / _volumeBar["track"].width;			volume = p;						_volumeBar["thumb"].addEventListener(MouseEvent.MOUSE_DOWN, volumeBarThumbDragStart);		}		private function seekBarThumbDragStart(event:MouseEvent):void		{			_seekBar["thumb"].removeEventListener(MouseEvent.MOUSE_DOWN, seekBarThumbDragStart);						_scrubbing = true;			_isDragStartPlay = _isPlay;			if (_isPlay) temporaryPause();			_dragStartX = _seekBar["thumb"].mouseX;						_seekBar["thumb"].addEventListener(Event.ENTER_FRAME, seekBarThumbDrag);			_seekBar.root.stage.addEventListener(MouseEvent.MOUSE_UP, seekBarThumbDragEnd);		}		private function seekBarThumbDrag(event:Event):void		{			var x:Number = _seekBar.mouseX + _dragStartX;			_seekBar["thumb"].x = Math.min(Math.max(0, x), _seekBar["track"].width);						var p:Number = (_seekBar["thumb"].x - _seekBar["track"].x) / _seekBar["track"].width;			seek(duration * p);		}		private function seekBarThumbDragEnd(event:MouseEvent):void		{			_seekBar.root.stage.removeEventListener(MouseEvent.MOUSE_UP, seekBarThumbDragEnd);			_seekBar["thumb"].removeEventListener(Event.ENTER_FRAME, seekBarThumbDrag);						var x:Number = _seekBar.mouseX + _dragStartX;			_seekBar["thumb"].x = Math.min(Math.max(0, x), _seekBar["track"].width);						var p:Number = (_seekBar["thumb"].x - _seekBar["track"].x) / _seekBar["track"].width;			seek(duration * p);						_scrubbing = false;			if (_isDragStartPlay) temporaryResume();						_seekBar["thumb"].addEventListener(MouseEvent.MOUSE_DOWN, seekBarThumbDragStart);		}		private function nsStatus(event:NetStatusEvent):void		{			switch (event.info.code) {				case "NetStream.Buffer.Empty":					dispatchEvent(new VideoEvent(VideoEvent.BUFFER_EMPTY));					break;				case "NetStream.Buffer.Full":					dispatchEvent(new VideoEvent(VideoEvent.BUFFER_FULL));					break;				case "NetStream.Buffer.Flush":					dispatchEvent(new VideoEvent(VideoEvent.BUFFER_FLUSH));					break;				case "NetStream.Play.Start":					//					dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));					break;				case "NetStream.Play.Stop":					//					dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));					var time:Number = Math.floor(_ns.time * 10) / 10;					var duration:Number = Math.floor(_duration * 10) / 10;										if (time >= duration) {						complete();					}										break;				case "NetStream.Play.StreamNotFound":					dispatchEvent(new VideoEvent(VideoEvent.PLAY_STREAM_NOT_FOUND));					break;				case "NetStream.Play.Failed":					dispatchEvent(new VideoEvent(VideoEvent.PLAY_FAILED));					break;				case "NetStream.Seek.Failed":					dispatchEvent(new VideoEvent(VideoEvent.SEEK_FAILED));					break;				case "NetStream.Seek.InvalidTime":					dispatchEvent(new VideoEvent(VideoEvent.SEEK_INVALID_TIME));					break;				case "NetStream.Seek.Notify":					dispatchEvent(new VideoEvent(VideoEvent.SEEK_NOTIFY));					break;				default:					// その他					trace(event.info.code);			}		}		private function nsIoError(event:IOErrorEvent):void		{			dispatchEvent(event);		}		public function get scrubbing():Boolean		{			return _scrubbing;		}		public function get preferredHeight():Number		{			return metadata.height;		}		public function get preferredWidth():Number		{			return metadata.width;		}
-		public function get smoothing():Boolean
-		{			return _video.smoothing;		}
-		public function set smoothing(value:Boolean):void
-		{			_video.smoothing = value;		}				public function get repeat():Boolean		{			return _repeat;		}				public function set repeat(value:Boolean):void		{
-			_repeat = value;
+		private var _sound:ISoundObject;
+		private var _metadata:Object;
+		private var _isPlay:Boolean;
+		private var _completed:Boolean;
+		private var _repeat:Boolean;
+		private var _autoRewind:Boolean;
+		private var _parts:Array;
+		private var _request:URLRequest;
+		private var url_re:RegExp;
+		private var _load:Boolean;
+		private var _tempSondTransrform:SoundTransform;
+		private var _duration:*;
+		private var _streming:Boolean;
+		private var _prevTime:Number;
+		private var _count:int;
+		private var _timeout:int;
+		private var _bufferEmpty:Boolean;
+
+		[Event( name="metadataReceived", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="playStart", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="playPause", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="playResume", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="playStop", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="complete", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="bufferEmpty", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="bufferFull", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="bufferFlush", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="playStreamNotFound", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="playFailed", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="seekFailed", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="seekInvalidTime", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="seekNotify", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="loadStart", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="loadComplete", type="jp.cellfusion.events.VideoEvent" )]
+		[Event( name="progress", type="jp.cellfusion.events.VideoProgressEvent" )]
+		public function VideoPlayer(id:String, width:Number, height:Number)
+		{
+			url_re = /^rtmp\:\/\/(.+?)(\/.*)?$/m;
+
+			_nc = new NetConnection();
+			_nc.addEventListener(NetStatusEvent.NET_STATUS, connectionNsStatusHandler);
+			_nc.client = {};
+
+			_soundId = id;
+
+			_video = new Video(width, height);
+			_video.width = width;
+			_video.height = height;
+
+			addChild(_video);
+
+			_completed = false;
+			_autoRewind = false;
+			_repeat = false;
+
+			_parts = [];
+			_load = false;
+			_streming = false;
+			_tempSondTransrform = new SoundTransform();
+
+			_count = 0;
+			_timeout = 20;
+			_bufferEmpty = false;
 		}
 
-		public function get sound():ISoundObject
+		private function connectionNsStatusHandler(event:NetStatusEvent):void
 		{
-			return _sound;
-		}	}}
+			trace("NetConnection netStatus", event.info.code);
+			if (event.info.code == "NetConnection.Connect.Success") {
+				if (_ns == null) {
+					_ns = new NetStream(_nc);
+					_ns.addEventListener(IOErrorEvent.IO_ERROR, nsIoError);
+					_ns.addEventListener(NetStatusEvent.NET_STATUS, nsStatus);
+					_ns.client = {onMetaData:function(param:Object):void {
+						trace("onMetaData", param);
+						if (!_isPlay) {
+							// _ns.seek(0);
+						}
+
+						_metadata = param;
+
+						dispatchEvent(new VideoEvent(VideoEvent.METADATA_RECEIVED));
+					}};
+
+					_video.attachNetStream(_ns);
+				}
+
+				if (_sound == null) {
+					_ns.soundTransform = _tempSondTransrform;
+					_sound = SoundManager.instance.add(new VideoSound(_ns), _soundId);
+				}
+
+				_streming = url_re.test(_request.url);
+
+				_ns.play(getVideoURL(_request.url));
+				_bufferEmpty = false;
+				_nc.call("getStreamLength", new Responder(getStreamLengthResult), getVideoURL(_request.url));
+				loadStart();
+
+				if (_load) {
+					_ns.pause();
+					// _ns.seek(0);
+				}
+
+				updateHandler();
+			}
+		}
+
+		private function getVideoURL(url:String):String
+		{
+			if (url_re.test(url)) {
+				var rst:Array = url.match(url_re);
+				var path:String = rst[2];
+				var file:String = path.substring(path.indexOf("/", 1));
+
+				if (/(f4v|mp4)$/.test(file)) {
+					file = "mp4:" + file;
+				}
+
+				return file;
+			}
+			return url;
+		}
+
+		private function getConnectURL(url:String):String
+		{
+			if (url_re.test(url)) {
+				var rst:Array = url.match(url_re);
+				var domain:String = rst[1];
+				var path:String = rst[2];
+				var application:String = "rtmp://" + domain + path.substring(0, path.indexOf("/", 1));
+
+				return application;
+			}
+
+			return null;
+		}
+
+		private	function getStreamLengthResult(value:*):void
+		{
+			// trace("getStreamLengthResult", this, value);
+			_duration = value;
+		}
+
+		/**
+		 * 途中シーク出来てもいい気がする
+		 */
+		public function play(request:URLRequest = null, play:Boolean = false):void
+		{
+			trace(this, "play", _isPlay, request, _nc.connected);
+
+			if (request) {
+				_request = request;
+
+				if (_nc.connected) {
+					if (_nc.uri.indexOf(getConnectURL(request.url)) == 0) {
+						_ns.play(getVideoURL(request.url));
+					} else {
+						_nc.close();
+						_nc.connect(getConnectURL(request.url));
+					}
+				} else {
+					_nc.connect(getConnectURL(request.url));
+				}
+			} else if (play) {
+				_completed = false;
+				_ns.resume();
+			} else if (_completed) {
+				_completed = false;
+				_ns.seek(0);
+				_ns.resume();
+				_bufferEmpty = true;
+			} else {
+				_ns.resume();
+			}
+
+			updateHandler();
+			addEventListener(Event.ENTER_FRAME, updateHandler);
+			dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));
+			_isPlay = true;
+		}
+
+		public function pause(temporary:Boolean = false):void
+		{
+			if (!temporary) {
+				_isPlay = false;
+				updateHandler();
+				dispatchEvent(new VideoEvent(VideoEvent.PLAY_PAUSE));
+			}
+
+			_ns.pause();
+			removeEventListener(Event.ENTER_FRAME, updateHandler);
+		}
+
+		public function stop():void
+		{
+			_isPlay = false;
+
+			if (_ns) {
+				_ns.pause();
+				_ns.seek(0);
+			}
+			updateHandler();
+			removeEventListener(Event.ENTER_FRAME, updateHandler);
+
+			reset();
+
+			dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));
+		}
+
+		public function resume(temporary:Boolean = false):void
+		{
+			if (!temporary) {
+				_isPlay = true;
+				updateHandler();
+				dispatchEvent(new VideoEvent(VideoEvent.PLAY_RESUME));
+			}
+
+			_ns.resume();
+			addEventListener(Event.ENTER_FRAME, updateHandler);
+		}
+
+		public function togglePause():void
+		{
+			_isPlay != _isPlay;
+			_ns.togglePause();
+			updateHandler();
+		}
+
+		public function load(request:URLRequest):void
+		{
+			_load = true;
+			_request = request;
+			_nc.connect(getConnectURL(request.url));
+		}
+
+		public function seek(offset:Number):void
+		{
+			_ns.seek(offset);
+			_bufferEmpty = true;
+
+			if (!_isPlay) {
+				updateHandler();
+			}
+		}
+
+		public function close():void
+		{
+			stop();
+			SoundManager.instance.remove(_soundId);
+			
+			if (_ns) {
+				_ns.close();
+			}
+		}
+
+		private function complete():void
+		{
+			trace(this, "complete");
+			pause();
+
+			if (_repeat) {
+				seek(0);
+				play();
+			} else if (_autoRewind) {
+				seek(0);
+				reset();
+			}
+
+			_completed = true;
+			_isPlay = false;
+			dispatchEvent(new VideoEvent(VideoEvent.COMPLETE));
+
+			removeEventListener(Event.ENTER_FRAME, updateHandler);
+		}
+
+		private function reset():void
+		{
+			for each (var i : IControllerParts in _parts) {
+				i.reset();
+			}
+		}
+
+		//
+		private function loadStart():void
+		{
+			dispatchEvent(new VideoEvent(VideoEvent.LOAD_START));
+			addEventListener(Event.ENTER_FRAME, loadProgress);
+		}
+
+		private function loadProgress(event:Event):void
+		{
+			var loaded:uint = _ns.bytesLoaded;
+			var total:uint = _ns.bytesTotal;
+
+			dispatchEvent(new VideoProgressEvent(VideoProgressEvent.PROGRESS, false, false, loaded, total));
+
+			try {
+				updateHandler();
+			} catch(error:Error) {
+			}
+
+			if (loaded >= total && total > 0) {
+				loadComplete();
+			}
+		}
+
+		private function loadComplete():void
+		{
+			dispatchEvent(new VideoEvent(VideoEvent.LOAD_COMPLETE));
+			removeEventListener(Event.ENTER_FRAME, loadProgress);
+		}
+
+		private function updateHandler(event:Event = null):void
+		{
+			update();
+		}
+
+		public function update(countup:Boolean = true):void
+		{
+			for each (var i : IControllerParts in _parts) {
+				i.update();
+
+				var seekbar:SeekBarBase = i as SeekBarBase;
+				if (seekbar) {
+					if (seekbar.isDrag) {
+						countup = false;
+					}
+				}
+			}
+
+			// seek 直後は回復するまで countup 無効
+			if (_bufferEmpty) {
+				countup = false;
+			}
+
+			if (_isPlay && _nc.connected && time > 0 && duration > 0) {
+				// var time:Number = Math.floor(time * 10) / 10;
+				// var duration:Number = Math.floor(duration * 10) / 10;
+				// if (time >= duration) {
+				// complete();
+				// }
+
+				if (_prevTime == time && countup) {
+					_count++;
+				} else {
+					_count = 0;
+					_prevTime = time;
+				}
+
+				// trace("countup", countup, _bufferEmpty, _count, _timeout);
+
+				if (_count > _timeout) {
+					complete();
+				}
+			}
+		}
+
+		private function nsStatus(event:NetStatusEvent):void
+		{
+			trace("NetStream nsStatus", event.info.code);
+			trace(time, duration, _duration, _isPlay, _nc.connected);
+
+			switch (event.info.code) {
+				case "NetStream.Buffer.Empty":
+					dispatchEvent(new VideoEvent(VideoEvent.BUFFER_EMPTY));
+					break;
+				case "NetStream.Buffer.Full":
+					dispatchEvent(new VideoEvent(VideoEvent.BUFFER_FULL));
+					_bufferEmpty = false;
+					break;
+				case "NetStream.Buffer.Flush":
+					dispatchEvent(new VideoEvent(VideoEvent.BUFFER_FLUSH));
+					_bufferEmpty = false;
+					break;
+				case "NetStream.Play.Start":
+					// dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));
+					break;
+				case "NetStream.Play.Stop":
+					// dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));
+					// var time:Number = Math.floor(time * 10) / 10;
+					// var duration:Number = Math.floor(duration * 10) / 10;
+					// if (time >= duration) {
+					// complete();
+					// }
+					break;
+				case "NetStream.Play.StreamNotFound":
+					dispatchEvent(new VideoEvent(VideoEvent.PLAY_STREAM_NOT_FOUND));
+					break;
+				case "NetStream.Play.Failed":
+					dispatchEvent(new VideoEvent(VideoEvent.PLAY_FAILED));
+					break;
+				case "NetStream.Seek.Failed":
+					dispatchEvent(new VideoEvent(VideoEvent.SEEK_FAILED));
+					break;
+				case "NetStream.Seek.InvalidTime":
+					dispatchEvent(new VideoEvent(VideoEvent.SEEK_INVALID_TIME));
+					seek(time - 1);
+					break;
+				case "NetStream.Seek.Notify":
+					dispatchEvent(new VideoEvent(VideoEvent.SEEK_NOTIFY));
+					break;
+				case "NetStream.Play.Reset":
+					break;
+				case "NetStream.Pause.Notify":
+					break;
+				case "NetStream.Unpause.Notify":
+					break;
+				default:
+					for (var i : String in event.info) {
+						trace(i, event.info[i]);
+					}
+			}
+		}
+
+		private function nsIoError(event:IOErrorEvent):void
+		{
+			dispatchEvent(event);
+		}
+
+		//
+		public function get time():Number
+		{
+			return _ns ? _ns.time : 0;
+		}
+
+		public function get duration():Number
+		{
+			return _metadata ? _metadata.duration : 0;
+		}
+
+		public function get bytesLoaded():Number
+		{
+			if (_streming) return 1;
+
+			return _ns ? _ns.bytesLoaded : 0;
+		}
+
+		public function get bytesTotal():Number
+		{
+			if (_streming) return 1;
+
+			return _ns ? _ns.bytesTotal : 0;
+		}
+
+		public function get bufferLength():Number
+		{
+			return _ns ? _ns.bufferLength : 0;
+		}
+
+		public function get bufferTime():Number
+		{
+			return _ns ? _ns.bufferTime : 0;
+		}
+
+		public function set bufferTime(value:Number):void
+		{
+			_ns.bufferTime = value;
+		}
+
+		public override function get soundTransform():SoundTransform
+		{
+			return _ns ? _ns.soundTransform : _tempSondTransrform;
+		}
+
+		public function get metadata():Object
+		{
+			return _metadata;
+		}
+
+		public function get volume():Number
+		{
+			return _sound ? _sound.volume : _tempSondTransrform.volume;
+		}
+
+		public function get autoRewind():Boolean
+		{
+			return _autoRewind;
+		}
+
+		public function get preferredHeight():Number
+		{
+			if (!_metadata) {
+				return 0;
+			}
+			return metadata.height;
+		}
+
+		public function get preferredWidth():Number
+		{
+			if (!_metadata) {
+				return 0;
+			}
+			return metadata.width;
+		}
+
+		public function get smoothing():Boolean
+		{
+			return _video.smoothing;
+		}
+
+		public function set volume(offset:Number):void
+		{
+			if (!_sound) {
+				_tempSondTransrform.volume = offset;
+				return;
+			}
+
+			_sound.volume = offset;
+			updateHandler();
+		}
+
+		public function set autoRewind(value:Boolean):void
+		{
+			_autoRewind = value;
+		}
+
+		public function set smoothing(value:Boolean):void
+		{
+			_video.smoothing = value;
+		}
+
+		public function addParts(parts:IControllerParts):void
+		{
+			_parts.push(parts);
+			parts.initialize(this);
+		}
+
+		public function removeParts(parts:IControllerParts):void
+		{
+			var idx:int = _parts.indexOf(parts);
+			_parts.splice(idx, 1);
+			parts.finalize();
+		}
+
+		public function get isPlay():Boolean
+		{
+			return _isPlay;
+		}
+
+		public function get streming():Boolean
+		{
+			return _streming;
+		}
+	}
+}

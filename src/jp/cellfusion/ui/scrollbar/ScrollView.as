@@ -1,9 +1,6 @@
 package jp.cellfusion.ui.scrollbar
 {
-	import jp.cellfusion.ui.events.ScrollEvent;
-
-	import flash.events.EventDispatcher;
-
+	import jp.cellfusion.events.ScrollEvent;
 	import jp.cellfusion.ui.AbstractUI;
 
 	import flash.display.Sprite;

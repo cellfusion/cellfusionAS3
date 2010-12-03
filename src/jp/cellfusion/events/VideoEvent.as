@@ -1,0 +1,9 @@
+package jp.cellfusion.events{	import flash.events.Event;	/**	 * @author Mk-10:cellfusion	 */	public class VideoEvent extends Event 	{		public static const METADATA_RECEIVED :String = "metadataReceived";		public static const BUFFER_EMPTY:String = "bufferEmpty";		public static const BUFFER_FULL:String = "bufferFull";		public static const BUFFER_FLUSH:String = "bufferFlush";		public static const PLAY_START:String = "playStart";		public static const PLAY_PAUSE:String = "playPause";		public static const PLAY_RESUME:String = "playResume";		public static const PLAY_STOP:String = "playStop";		public static const PLAY_STREAM_NOT_FOUND:String = "playStreamNotFound";		public static const PLAY_FAILED:String = "playFailed";		public static const SEEK_FAILED:String = "seekFailed";		public static const SEEK_INVALID_TIME:String = "seekInvalidTime";		public static const SEEK_NOTIFY:String = "seekNotify";		public static const AUTO_REWOUND:String = "autoRewound";		public static const FAST_FORWARD:String = "fastForward";		public static const LOAD_START:String = "loadStart";		public static const LOAD_COMPLETE:String = "loadComplete";		public static const COMPLETE:String = "complete";		public static const VOLUME_CHANGED:String = "volumeChanged";				public function VideoEvent(type:String, bubbles:Boolean = false, cancelable:Boolean = false)		{			super(type, bubbles, cancelable);		}						override public function clone():Event
+		{
+			return new VideoEvent(type, bubbles, cancelable);
+		}				
+		override public function toString():String
+		{
+			return super.toString();
+		}
+	}}

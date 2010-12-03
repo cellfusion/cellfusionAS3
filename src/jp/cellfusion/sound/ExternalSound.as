@@ -9,9 +9,9 @@ package jp.cellfusion.sound
 	 */
 	public class ExternalSound extends SoundObject implements ISoundObject
 	{
-		public function ExternalSound(request:URLRequest, context:SoundLoaderContext = null) 
+		public function ExternalSound(request:URLRequest, context:SoundLoaderContext = null, type:uint = BGM) 
 		{
-			super(new Sound(request, context));
+			super(new Sound(request, context), type);
 		}
 	}
 }

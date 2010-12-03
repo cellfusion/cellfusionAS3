@@ -1,8 +1,7 @@
 package jp.cellfusion.ui.button 
 {
-	import jp.cellfusion.ui.events.ButtonEvent;
-
 	import flash.events.MouseEvent;
+	import jp.cellfusion.events.ButtonEvent;
 
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)

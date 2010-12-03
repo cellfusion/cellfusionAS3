@@ -6,9 +6,9 @@ package jp.cellfusion.sound
 	 */
 	public class LibrarySound extends SoundObject implements ISoundObject
 	{
-		public function LibrarySound(linkageId:Class) 
+		public function LibrarySound(linkageId:Class, type:uint = BGM) 
 		{
-			super(new linkageId());
+			super(new linkageId(), type);
 		}
 	}
 }
