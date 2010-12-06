@@ -183,6 +183,7 @@ package jp.cellfusion.ui.video
 
 				if (_nc.connected) {
 					if (_nc.uri.indexOf(getConnectURL(request.url)) == 0) {
+						if (!_isPlay) _ns.close();
 						_ns.play(getVideoURL(request.url));
 					} else {
 						_nc.close();

@@ -1,5 +1,6 @@
 package jp.cellfusion.ui.video.ui
 {
+	import jp.cellfusion.events.VideoEvent;
 	import jp.cellfusion.ui.AbstractUI;
 	import jp.cellfusion.ui.video.IVideoPlayer;
 
@@ -18,6 +19,11 @@ package jp.cellfusion.ui.video.ui
 		private var _dragStartX:Number;
 		private var _isDrag:Boolean;
 
+		public function SeekBarBase()
+		{
+			reset();
+		}
+
 		public function initialize(player:IVideoPlayer):void
 		{
 			_player = player;
@@ -26,15 +32,17 @@ package jp.cellfusion.ui.video.ui
 			track.buttonMode = true;
 			progress.mouseEnabled = false;
 			progress.mouseChildren = false;
-
-			// live だと思われる
-			if (_player.metadata == null) {
-			} else {
-				thumb.addEventListener(MouseEvent.MOUSE_DOWN, thumbDragStart);
-				track.addEventListener(MouseEvent.CLICK, trackClick);
-			}
+			
+			reset();
+			_player.addEventListener(VideoEvent.METADATA_RECEIVED, metaDataReceived);
 
 			_isDrag = false;
+		}
+
+		private function metaDataReceived(event:VideoEvent):void
+		{
+			thumb.addEventListener(MouseEvent.MOUSE_DOWN, thumbDragStart);
+			track.addEventListener(MouseEvent.CLICK, trackClick);
 		}
 
 		private function trackClick(event:MouseEvent):void
@@ -109,8 +117,16 @@ package jp.cellfusion.ui.video.ui
 
 		public function finalize():void
 		{
-			thumb.removeEventListener(MouseEvent.MOUSE_DOWN, thumbDragStart);
-			track.removeEventListener(MouseEvent.CLICK, trackClick);
+			try {
+				thumb.removeEventListener(MouseEvent.MOUSE_DOWN, thumbDragStart);
+			} catch(error:Error) {
+			}
+
+			try {
+				track.removeEventListener(MouseEvent.CLICK, trackClick);
+			} catch(error:Error) {
+			}
+
 			_player = null;
 		}
 
@@ -129,6 +145,7 @@ package jp.cellfusion.ui.video.ui
 				var l:Number = _player.bytesLoaded / _player.bytesTotal;
 				var maxWidth:Number = track.width - thumb.width;
 
+				thumb.visible = true;
 				thumb.x = maxWidth * p + track.x;
 				progress.scaleX = p;
 				track.scaleX = l;
