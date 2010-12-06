@@ -65,7 +65,7 @@ package jp.cellfusion.ui.video
 		[Event( name="progress", type="jp.cellfusion.events.VideoProgressEvent" )]
 		public function VideoPlayer(id:String, width:Number, height:Number)
 		{
-			url_re = /^rtmp\:\/\/(.+?)(\/.*)?$/m;
+			url_re = /^rtmp\:\/\/([\S^\/]+?)\/([\S^\/]+?)\/(.+)$/;
 
 			_nc = new NetConnection();
 			_nc.addEventListener(NetStatusEvent.NET_STATUS, connectionNsStatusHandler);
@@ -106,7 +106,7 @@ package jp.cellfusion.ui.video
 						}
 
 						_metadata = param;
-
+						
 						dispatchEvent(new VideoEvent(VideoEvent.METADATA_RECEIVED));
 					}};
 
@@ -138,13 +138,15 @@ package jp.cellfusion.ui.video
 		{
 			if (url_re.test(url)) {
 				var rst:Array = url.match(url_re);
-				var path:String = rst[2];
-				var file:String = path.substring(path.indexOf("/", 1));
+				var path:String = rst[3];
+				var file:String;
 
-				if (/(f4v|mp4)$/.test(file)) {
-					file = "mp4:" + file;
+				if (/(f4v|mp4)$/.test(path)) {
+					file = "mp4:" + path;
+				} else {
+					file = path;
 				}
-
+				
 				return file;
 			}
 			return url;
@@ -155,10 +157,11 @@ package jp.cellfusion.ui.video
 			if (url_re.test(url)) {
 				var rst:Array = url.match(url_re);
 				var domain:String = rst[1];
-				var path:String = rst[2];
-				var application:String = "rtmp://" + domain + path.substring(0, path.indexOf("/", 1));
+				var application:String = rst[2];
+				var path:String = rst[3];
+				var temp:String = "rtmp://" + domain + "/" + application;
 
-				return application;
+				return temp;
 			}
 
 			return null;
@@ -359,7 +362,7 @@ package jp.cellfusion.ui.video
 				countup = false;
 			}
 
-			if (_isPlay && _nc.connected && time > 0 && duration > 0) {
+			if (_isPlay && _nc.connected && time > 0 && duration > 0 && Math.abs(duration - time) < 1) {
 				if (_prevTime == time && countup) {
 					_count++;
 				} else {

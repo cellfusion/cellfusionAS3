@@ -21,6 +21,7 @@ package jp.cellfusion.ui.video.ui
 			super.atClick();
 
 			if (!_player.isPlay) {
+				_player.seek(0);
 				_player.play();
 			} else {
 				_player.seek(0);
