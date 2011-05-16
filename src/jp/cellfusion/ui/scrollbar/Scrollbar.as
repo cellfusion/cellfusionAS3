@@ -86,7 +86,7 @@ package jp.cellfusion.ui.scrollbar
 			} catch (e:Error) {
 			}
 
-			_size = 5;
+			_size = 0.1;
 		}
 
 		/**
@@ -111,15 +111,13 @@ package jp.cellfusion.ui.scrollbar
 		public function scrollUp():void
 		{
 			var target:Number = _pos - _size;
-
-			scrollHoge(target);
+			scroll(target);
 		}
 
 		public function scrollDown():void
 		{
 			var target:Number = _pos + _size;
-
-			scrollHoge(target);
+			scroll(target);
 		}
 
 		/**

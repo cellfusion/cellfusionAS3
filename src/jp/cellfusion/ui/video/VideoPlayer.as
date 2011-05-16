@@ -1,5 +1,8 @@
 package jp.cellfusion.ui.video
 {
+	import flash.events.ErrorEvent;
+	import flash.events.SecurityErrorEvent;
+	import flash.events.AsyncErrorEvent;
 	import jp.cellfusion.ui.video.ui.SeekBarBase;
 	import jp.cellfusion.events.VideoEvent;
 	import jp.cellfusion.events.VideoProgressEvent;
@@ -21,6 +24,7 @@ package jp.cellfusion.ui.video
 
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
+	 * 旧VideoPlayer
 	 */
 	public class VideoPlayer extends Sprite implements IVideoPlayer
 	{
@@ -45,6 +49,7 @@ package jp.cellfusion.ui.video
 		private var _count:int;
 		private var _timeout:int;
 		private var _bufferEmpty:Boolean;
+		private var _start:Number;
 
 		[Event( name="metadataReceived", type="jp.cellfusion.events.VideoEvent" )]
 		[Event( name="playStart", type="jp.cellfusion.events.VideoEvent" )]
@@ -69,6 +74,9 @@ package jp.cellfusion.ui.video
 
 			_nc = new NetConnection();
 			_nc.addEventListener(NetStatusEvent.NET_STATUS, connectionNsStatusHandler);
+			_nc.addEventListener(AsyncErrorEvent.ASYNC_ERROR, netConnectionAsyncError);
+			_nc.addEventListener(IOErrorEvent.IO_ERROR, netConnectionIoError);
+			_nc.addEventListener(SecurityErrorEvent.SECURITY_ERROR, netConnectionSecurityError);
 			_nc.client = {};
 
 			_soundId = id;
@@ -90,63 +98,126 @@ package jp.cellfusion.ui.video
 
 			_count = 0;
 			_timeout = 20;
+			_duration = 0;
 			_bufferEmpty = false;
+		}
+
+		private function netConnectionSecurityError(event:SecurityErrorEvent):void
+		{
+//			trace("netConnectionSecurityError", event.text);
+		}
+
+		private function netConnectionIoError(event:IOErrorEvent):void
+		{
+//			trace("netConnectionIoError", event.text);
+		}
+
+		private function netConnectionAsyncError(event:AsyncErrorEvent):void
+		{
+//			trace("netConnectionAsyncError", event.text);
 		}
 
 		private function connectionNsStatusHandler(event:NetStatusEvent):void
 		{
+//			trace("connectionNsStatusHandler", event.info.code, event.info.level);
+//			if (event.info.level == "error") {
+//				_nc.connect(getConnectURL(_request.url));
+//				return;
+//			}
+			
 			if (event.info.code == "NetConnection.Connect.Success") {
 				if (_ns == null) {
 					_ns = new NetStream(_nc);
 					_ns.addEventListener(IOErrorEvent.IO_ERROR, nsIoError);
+					_ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR, nsAsyncError);
 					_ns.addEventListener(NetStatusEvent.NET_STATUS, nsStatus);
-					_ns.client = {onMetaData:function(param:Object):void {
-						if (!_isPlay) {
-							// _ns.seek(0);
-						}
-
-						_metadata = param;
-						
-						dispatchEvent(new VideoEvent(VideoEvent.METADATA_RECEIVED));
-					}};
-
-					_video.attachNetStream(_ns);
+					_ns.addEventListener(ErrorEvent.ERROR, nsError);
+					_ns.client = {onMetaData:metaDataHandler, onPlayStatus:playStatusHandler, onCuePoint:cuePointHandler, onImageData:imageDataHandler, onTextData:textDataHandler};
 				}
+				_video.attachNetStream(_ns);
 
 				if (_sound == null) {
 					_ns.soundTransform = _tempSondTransrform;
 					_sound = SoundManager.instance.add(new VideoSound(_ns), _soundId);
+//					_sound.volume = 1.0;
 				}
 
 				_streming = url_re.test(_request.url);
 
-				_ns.play(getVideoURL(_request.url));
 				_bufferEmpty = false;
 				_nc.call("getStreamLength", new Responder(getStreamLengthResult), getVideoURL(_request.url));
-				loadStart();
+
+				_ns.play(getVideoURL(_request.url));
+				
+//				loadStart();
 
 				if (_load) {
 					_ns.pause();
 					// _ns.seek(0);
 				}
 
-				updateHandler();
+//				updateHandler();
 			}
+		}
+
+		private function nsError(event:ErrorEvent):void
+		{
+//			trace("nsError");
+		}
+
+		private function nsAsyncError(event:AsyncErrorEvent):void
+		{
+//			trace("nsAsyncError", event.error);
+		}
+		
+		private function cuePointHandler(data:Object):void
+		{
+//			trace("cuePointHandler");
+		}
+		
+		private function imageDataHandler(data:Object):void
+		{
+//			trace("imageDataHandler");
+		}
+		
+		private function textDataHandler(data:Object):void
+		{
+//			trace("textDataHandler");
+		}
+
+		private function metaDataHandler(data:Object):void
+		{
+//			trace("metadataHandler");
+			if (!_isPlay) {
+				// _ns.seek(0);
+			}
+
+			_metadata = data;
+			dispatchEvent(new VideoEvent(VideoEvent.METADATA_RECEIVED));
+		}
+
+		private function playStatusHandler(data:Object):void
+		{
+//			trace("onPlayStatus");
 		}
 
 		private function getVideoURL(url:String):String
 		{
+			// rtmp の場合のみ判定
 			if (url_re.test(url)) {
 				var rst:Array = url.match(url_re);
 				var path:String = rst[3];
 				var file:String;
-
+				
+				// 拡張子を取り除く必要がある
 				if (/(f4v|mp4)$/.test(path)) {
+//					file = "mp4:" + path.split(".")[0];
 					file = "mp4:" + path;
 				} else {
-					file = path;
+					file = path.split(".")[0];
 				}
-				
+				trace("file", file);
+
 				return file;
 			}
 			return url;
@@ -169,22 +240,25 @@ package jp.cellfusion.ui.video
 
 		private	function getStreamLengthResult(value:*):void
 		{
-			// trace("getStreamLengthResult", this, value);
+//			trace("getStreamLengthResult", this, value);
 			_duration = value;
+			_ns.seek(0);
 		}
 
 		/**
 		 * 途中シーク出来てもいい気がする
 		 */
-		public function play(request:URLRequest = null, play:Boolean = false):void
+		public function play(request:URLRequest = null, play:Boolean = false, start:Number = -2):void
 		{
+			_start = start;
+
 			if (request) {
 				_request = request;
 
 				if (_nc.connected) {
 					if (_nc.uri.indexOf(getConnectURL(request.url)) == 0) {
 						if (!_isPlay) _ns.close();
-						_ns.play(getVideoURL(request.url));
+						_ns.play(getVideoURL(request.url), start);
 					} else {
 						_nc.close();
 						_nc.connect(getConnectURL(request.url));
@@ -262,6 +336,8 @@ package jp.cellfusion.ui.video
 			_load = true;
 			_request = request;
 			_nc.connect(getConnectURL(request.url));
+			
+			loadStart();
 		}
 
 		public function seek(offset:Number):void
@@ -278,15 +354,28 @@ package jp.cellfusion.ui.video
 		{
 			stop();
 			SoundManager.instance.remove(_soundId);
-			
+
 			if (_ns) {
 				_ns.close();
 			}
+			
+			_nc.close();
+			
+			_nc.removeEventListener(NetStatusEvent.NET_STATUS, connectionNsStatusHandler);
+			_nc.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, netConnectionAsyncError);
+			_nc.removeEventListener(IOErrorEvent.IO_ERROR, netConnectionIoError);
+			_nc.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, netConnectionSecurityError);
 		}
 
 		private function complete():void
 		{
-			pause();
+			if (_completed) {
+				return;
+			}
+			
+			removeEventListener(Event.ENTER_FRAME, updateHandler);
+			
+//			pause();
 
 			if (_repeat) {
 				seek(0);
@@ -300,7 +389,6 @@ package jp.cellfusion.ui.video
 			_isPlay = false;
 			dispatchEvent(new VideoEvent(VideoEvent.COMPLETE));
 
-			removeEventListener(Event.ENTER_FRAME, updateHandler);
 		}
 
 		private function reset():void
@@ -336,8 +424,8 @@ package jp.cellfusion.ui.video
 
 		private function loadComplete():void
 		{
-			dispatchEvent(new VideoEvent(VideoEvent.LOAD_COMPLETE));
 			removeEventListener(Event.ENTER_FRAME, loadProgress);
+			dispatchEvent(new VideoEvent(VideoEvent.LOAD_COMPLETE));
 		}
 
 		private function updateHandler(event:Event = null):void
@@ -347,6 +435,7 @@ package jp.cellfusion.ui.video
 
 		public function update(countup:Boolean = true):void
 		{
+//			trace("update");
 			for each (var i : IControllerParts in _parts) {
 				i.update();
 
@@ -362,8 +451,21 @@ package jp.cellfusion.ui.video
 			if (_bufferEmpty) {
 				countup = false;
 			}
-
+			
+			//trace("isPlay", _isPlay, "nc.connected", _nc.connected, "time", time, "duration", duration);
 			if (_isPlay && _nc.connected && time > 0 && duration > 0 && Math.abs(duration - time) < 1) {
+				if (_prevTime == time && countup) {
+					_count++;
+				} else {
+					_count = 0;
+					_prevTime = time;
+				}
+				
+				if (_count > _timeout) {
+					complete();
+				}
+			} else if (duration == 0) {
+				// duration がない場合のみ対応
 				if (_prevTime == time && countup) {
 					_count++;
 				} else {
@@ -379,6 +481,7 @@ package jp.cellfusion.ui.video
 
 		private function nsStatus(event:NetStatusEvent):void
 		{
+//			trace("nsStatus", event.info.code);
 			switch (event.info.code) {
 				case "NetStream.Buffer.Empty":
 					if (_count > 0) return;
@@ -427,6 +530,7 @@ package jp.cellfusion.ui.video
 
 		private function nsIoError(event:IOErrorEvent):void
 		{
+//			trace("nsIoError", event.text);
 			dispatchEvent(event);
 		}
 
@@ -438,7 +542,7 @@ package jp.cellfusion.ui.video
 
 		public function get duration():Number
 		{
-			return _metadata ? _metadata.duration : 0;
+			return _metadata ? _metadata.duration : _duration;
 		}
 
 		public function get bytesLoaded():Number
@@ -555,4 +659,9 @@ package jp.cellfusion.ui.video
 			return _streming;
 		}
 	}
+}
+
+class NetStreamClient extends Object
+{
+	
 }

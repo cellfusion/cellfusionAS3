@@ -1,5 +1,6 @@
 package jp.cellfusion.sound
 {
+	import flash.media.SoundChannel;
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 */
@@ -26,5 +27,7 @@ package jp.cellfusion.sound
 		function get isSolo():Boolean;
 		
 		function get position():Number;
+		
+		function set atSoundComplete(value:Function):void;
 	}
 }

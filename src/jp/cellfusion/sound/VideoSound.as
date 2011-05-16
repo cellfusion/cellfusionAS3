@@ -30,7 +30,7 @@ package jp.cellfusion.sound
 		{
 			_ns = ns;
 			_soundTransform = _ns.soundTransform;
-			_volume = 1;
+			volume = 1;
 
 			_fadeTimer = new Timer(250, 4);
 			_fadeTimer.addEventListener(TimerEvent.TIMER, fadeProgress);
@@ -65,6 +65,7 @@ package jp.cellfusion.sound
 
 		public function set volume(value:Number):void
 		{
+//			trace("volume", _volume * SoundManager.instance.volume, value, _volume, SoundManager.instance.volume);
 			_volume = value;
 			_soundTransform.volume = _volume * SoundManager.instance.volume;
 			_ns.soundTransform = _soundTransform;
@@ -145,6 +146,8 @@ package jp.cellfusion.sound
 			return _ns ? _ns.time : 0;
 		}
 		
-		
+		public function set atSoundComplete(value:Function):void
+		{
+		}
 	}
 }
