@@ -2,21 +2,27 @@ package jp.cellfusion.sound
 {
 	import fl.motion.easing.Linear;
 
+	import jp.cellfusion.events.SoundManagerEvent;
+
+	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
 	import flash.utils.Dictionary;
 	import flash.utils.Timer;
 	import flash.utils.getTimer;
-
+	
+	[Event(name="masterVolumeChange", type="jp.cellfusion.events.SoundManagerEvent")]
+	[Event(name="masterFadeComplete", type="jp.cellfusion.events.SoundManagerEvent")]
+	
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 * TODO 後は SE の扱いと各 SO の mute とか solo 実装
 	 */
-	public class SoundManager
+	public class SoundManager extends EventDispatcher
 	{
 		static private var _instance:SoundManager;
 		private var _volume:Number;
 		private var _fadeTimer:Timer;
-		private var _fadeStartTime:int;
+		private var _fadeStartTime:Number;
 		private var _fadeStartVolume:Number;
 		private var _fadeEasing:Function;
 		private var _fadeTargetVolume:Number;
@@ -26,6 +32,7 @@ package jp.cellfusion.sound
 		private var _muteVolume:Number;
 		private var _solo:Array;
 		private var _isMute:Boolean;
+		private var _isProgress:Boolean;
 
 		static public function get instance():SoundManager
 		{
@@ -40,6 +47,7 @@ package jp.cellfusion.sound
 			_ids = new Dictionary();
 			_volume = 1;
 			_isMute = false;
+			_isProgress = false;
 
 			_fadeTimer = new Timer(250, 4);
 			_fadeTimer.addEventListener(TimerEvent.TIMER, fadeProgress);
@@ -49,7 +57,7 @@ package jp.cellfusion.sound
 		public function add(so:ISoundObject, id:String):ISoundObject
 		{
 			if (_ids[id] != null) {
-				throw new Error("既に id が使用されています");
+				throw new Error("既に id が使用されています,"+id);
 				return;
 			}
 
@@ -78,6 +86,23 @@ package jp.cellfusion.sound
 			_sounds.splice(idx, 1);
 			_ids[id] = null;
 		}
+		
+		/**
+		 * 未実装
+		 */
+		public function removeAtSound(sound:ISoundObject):void
+		{
+//			var idx:int = _sounds.indexOf(sound);
+//			if (idx < 0) {
+//				throw new Error("その ISoundObject は登録されていません");
+//				return;
+//			}
+//			
+//			sound.destroy();
+//			
+//			_sounds.splice(idx, 1);
+		}
+
 
 		/**
 		 * 
@@ -85,7 +110,9 @@ package jp.cellfusion.sound
 		public function mute(fade:Boolean = false, seconds:Number = 1, easing:Function = null):void
 		{
 			if (!_isMute) {
-				_muteVolume = volume;
+				if (!_isProgress) {
+					_muteVolume = volume;
+				}
 
 				if (fade) {
 					easing = easing || Linear.easeNone;
@@ -122,15 +149,20 @@ package jp.cellfusion.sound
 
 		public function set volume(value:Number):void
 		{
+//			trace("soundManager", "volume", value);
 			_volume = value;
 
 			for each (var so : ISoundObject in _sounds) {
 				so.volume = so.volume;
 			}
+
+			dispatchEvent(new SoundManagerEvent(SoundManagerEvent.MASTER_VOLUME_CHANGE));
 		}
 
 		private function fadeStart(volume:Number, seconds:Number, easing:Function):void
 		{
+//			trace("fadeStart", volume, seconds, easing);
+			
 			if (_fadeTimer.running) {
 				_fadeTimer.stop();
 				_fadeTimer.reset();
@@ -145,17 +177,24 @@ package jp.cellfusion.sound
 			_fadeStartTime = getTimer();
 			_fadeStartVolume = _volume;
 			_fadeTimer.start();
+			
+			_isProgress = true;
 		}
 
 		private function fadeProgress(event:TimerEvent):void
 		{
 			var dist:Number = (getTimer() - _fadeStartTime) / 1000;
 			volume = _fadeEasing(dist, _fadeStartVolume, (_fadeTargetVolume - _fadeStartVolume), _fadeTargetTime);
+//			trace("fadeProgress", dist, volume);
 		}
 
 		private function fadeComplete(event:TimerEvent):void
 		{
 			volume = _fadeTargetVolume;
+//			trace("fadeComplete", volume);
+			
+			dispatchEvent(new SoundManagerEvent(SoundManagerEvent.MASTER_FADE_COMPLETE));
+			_isProgress = false;
 		}
 	}
 }

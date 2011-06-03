@@ -1,7 +1,8 @@
 package jp.cellfusion.ui.button
 {
-	import flash.display.Sprite;
 	import flash.display.MovieClip;
+	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.events.MouseEvent;
 
 	/**
@@ -14,17 +15,19 @@ package jp.cellfusion.ui.button
 		protected var _current:IButton;
 		private var _invisible:Boolean;
 
-		public function ToggleButton(invisible:Boolean = true)
+		public function ToggleButton(invisible:Boolean = true, b:Boolean = true)
 		{
 			_invisible = invisible;
 
-			mouseChildren = false;
 			buttonMode = true;
 			addEventListener(MouseEvent.CLICK, click);
 			addEventListener(MouseEvent.ROLL_OVER, rollover);
 			addEventListener(MouseEvent.ROLL_OUT, rollout);
 
-			change('on');
+			if (b) {
+				mouseChildren = false;
+				change('on');
+			}
 		}
 
 		private function rollout(event:MouseEvent):void
@@ -68,22 +71,39 @@ package jp.cellfusion.ui.button
 			hitArea = Sprite(state == 'on' ? onButton : offButton);
 
 			mouseChildren = false;
+			
+			dispatchEvent(new Event(Event.CHANGE));
 		}
 
 		public function atClick():void
 		{
-			_current.atClick();
-			toggle();
+			if (_current) {
+				_current.atClick();
+				toggle();
+			} else {
+				var state:String = "";
+				if (Sprite(onButton).hitTestPoint(stage.mouseX, stage.mouseY)) {
+					state = "off";
+				} else if (Sprite(offButton).hitTestPoint(stage.mouseX, stage.mouseY)) {
+					state = "on";
+				}
+				
+				change(state);
+			}
 		}
 
 		public function atRollout():void
 		{
-			_current.atRollout();
+			if (_current) {
+				_current.atRollout();
+			}
 		}
 
 		public function atRollover():void
 		{
-			_current.atRollover();
+			if (_current) {
+				_current.atRollover();
+			}
 		}
 
 		override public function set enabled(value:Boolean):void

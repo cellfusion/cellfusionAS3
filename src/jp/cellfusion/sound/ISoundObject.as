@@ -26,5 +26,8 @@ package jp.cellfusion.sound
 		function get isSolo():Boolean;
 		
 		function get position():Number;
+		
+		function set atSoundComplete(value:Function):void;
+		function set atFadeComplete(value:Function):void;
 	}
 }

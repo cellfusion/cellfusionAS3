@@ -34,7 +34,7 @@ package jp.cellfusion.ui.video.ui
 			progress.mouseChildren = false;
 			
 			reset();
-			_player.addEventListener(VideoEvent.METADATA_RECEIVED, metaDataReceived);
+			player.addEventListener(VideoEvent.METADATA_RECEIVED, metaDataReceived);
 
 			_isDrag = false;
 		}
@@ -117,6 +117,8 @@ package jp.cellfusion.ui.video.ui
 
 		public function finalize():void
 		{
+			_player.removeEventListener(VideoEvent.METADATA_RECEIVED, metaDataReceived);
+			
 			try {
 				thumb.removeEventListener(MouseEvent.MOUSE_DOWN, thumbDragStart);
 			} catch(error:Error) {
@@ -136,7 +138,7 @@ package jp.cellfusion.ui.video.ui
 				return;
 			}
 
-			if (_player.metadata == null) {
+			if (_player.duration == 0) {
 				thumb.visible = false;
 				progress.scaleX = 1.0;
 				track.scaleX = 1.0;
