@@ -146,8 +146,12 @@ package jp.cellfusion.ui.video
 
 				_bufferEmpty = false;
 				_nc.call("getStreamLength", new Responder(getStreamLengthResult), getVideoURL(_request.url));
+<<<<<<< HEAD
 				
 				// metadata がくるまで再生はまつ
+=======
+
+>>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 				_ns.play(getVideoURL(_request.url));
 				
 //				loadStart();
@@ -158,7 +162,51 @@ package jp.cellfusion.ui.video
 				}
 
 //				updateHandler();
+<<<<<<< HEAD
 			}
+		}
+
+		private function nsError(event:ErrorEvent):void
+		{
+//			trace("nsError");
+		}
+
+		private function nsAsyncError(event:AsyncErrorEvent):void
+		{
+//			trace("nsAsyncError", event.error);
+		}
+		
+		private function cuePointHandler(data:Object):void
+		{
+//			trace("cuePointHandler");
+		}
+		
+		private function imageDataHandler(data:Object):void
+		{
+//			trace("imageDataHandler");
+		}
+		
+		private function textDataHandler(data:Object):void
+		{
+//			trace("textDataHandler");
+		}
+
+		private function metaDataHandler(data:Object):void
+		{
+//			trace("metadataHandler");
+			if (!_isPlay) {
+				// _ns.seek(0);
+=======
+>>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
+			}
+
+			_metadata = data;
+			dispatchEvent(new VideoEvent(VideoEvent.METADATA_RECEIVED));
+		}
+
+		private function playStatusHandler(data:Object):void
+		{
+//			trace("onPlayStatus");
 		}
 
 		private function nsError(event:ErrorEvent):void
@@ -354,6 +402,7 @@ package jp.cellfusion.ui.video
 		public function close():void
 		{
 			stop();
+<<<<<<< HEAD
 			
 //			_video.attachNetStream(null);
 			removeChild(_video);
@@ -362,11 +411,17 @@ package jp.cellfusion.ui.video
 			
 			SoundManager.instance.remove(_soundId);
 			_sound = null;
+=======
+			SoundManager.instance.remove(_soundId);
+>>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 
 			if (_ns) {
 				_ns.close();
 			}
+<<<<<<< HEAD
 			_ns = null;
+=======
+>>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 			
 			_nc.close();
 			
@@ -374,7 +429,10 @@ package jp.cellfusion.ui.video
 			_nc.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, netConnectionAsyncError);
 			_nc.removeEventListener(IOErrorEvent.IO_ERROR, netConnectionIoError);
 			_nc.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, netConnectionSecurityError);
+<<<<<<< HEAD
 			_nc = null;
+=======
+>>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 		}
 
 		private function complete():void

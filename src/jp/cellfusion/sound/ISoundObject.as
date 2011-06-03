@@ -1,5 +1,6 @@
 package jp.cellfusion.sound
 {
+	import flash.media.SoundChannel;
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 */
@@ -28,6 +29,9 @@ package jp.cellfusion.sound
 		function get position():Number;
 		
 		function set atSoundComplete(value:Function):void;
+<<<<<<< HEAD
 		function set atFadeComplete(value:Function):void;
+=======
+>>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 	}
 }
