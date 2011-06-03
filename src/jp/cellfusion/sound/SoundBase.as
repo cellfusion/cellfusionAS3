@@ -38,10 +38,7 @@ package jp.cellfusion.sound
 		private var _fadeStartVolume:Number;
 		private var _isSolo:Boolean;
 		private var _atSoundComplete:Function;
-<<<<<<< HEAD
 		private var _atFadeComplete:Function;
-=======
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 
 		public function SoundBase(sound:Sound, type:uint = BGM)
 		{
@@ -211,13 +208,10 @@ package jp.cellfusion.sound
 		private function fadeComplete(event:TimerEvent):void
 		{
 			volume = _fadeTargetVolume;
-<<<<<<< HEAD
 			
 			if (_atFadeComplete != null) {
 				_atFadeComplete.apply();
 			}
-=======
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 		}
 
 		public function destroy():void
@@ -231,18 +225,13 @@ package jp.cellfusion.sound
 				_sound.close();
 			} catch(error:Error) {
 			}
-<<<<<<< HEAD
 			
 			_sound = null;
 			_soundTransform = null;
 			
-			
 			_fadeTimer.removeEventListener(TimerEvent.TIMER, fadeProgress);
 			_fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, fadeComplete);
 			_fadeTimer = null;
-=======
-			_soundTransform = null;
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 		}
 
 		public function get isSolo():Boolean
@@ -264,13 +253,10 @@ package jp.cellfusion.sound
 		{
 			_atSoundComplete = value;
 		}
-<<<<<<< HEAD
 
 		public function set atFadeComplete(value:Function):void
 		{
 			_atFadeComplete = value;
 		}
-=======
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 	}
 }
