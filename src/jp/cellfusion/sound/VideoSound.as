@@ -1,5 +1,4 @@
-package jp.cellfusion.sound
-{
+package jp.cellfusion.sound {
 	import fl.motion.easing.Linear;
 
 	import flash.events.TimerEvent;
@@ -149,12 +148,9 @@ package jp.cellfusion.sound
 		public function set atSoundComplete(value:Function):void
 		{
 		}
-<<<<<<< HEAD
 		
 		public function set atFadeComplete(value:Function):void
 		{
 		}
-=======
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 	}
 }

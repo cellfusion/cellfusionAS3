@@ -1,8 +1,8 @@
-package jp.cellfusion.ui.video
-{
+package jp.cellfusion.ui.video {
 	import flash.events.ErrorEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.events.AsyncErrorEvent;
+
 	import jp.cellfusion.ui.video.ui.SeekBarBase;
 	import jp.cellfusion.events.VideoEvent;
 	import jp.cellfusion.events.VideoProgressEvent;
@@ -26,30 +26,29 @@ package jp.cellfusion.ui.video
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 * 旧VideoPlayer
 	 */
-	public class VideoPlayer extends Sprite implements IVideoPlayer
-	{
-		private var _nc:NetConnection;
-		private var _ns:NetStream;
-		private var _video:Video;
-		private var _soundId:String;
-		private var _sound:ISoundObject;
-		private var _metadata:Object;
-		private var _isPlay:Boolean;
-		private var _completed:Boolean;
-		private var _repeat:Boolean;
-		private var _autoRewind:Boolean;
-		private var _parts:Array;
-		private var _request:URLRequest;
-		private var url_re:RegExp;
-		private var _load:Boolean;
-		private var _tempSondTransrform:SoundTransform;
-		private var _duration:*;
-		private var _streming:Boolean;
-		private var _prevTime:Number;
-		private var _count:int;
-		private var _timeout:int;
-		private var _bufferEmpty:Boolean;
-		private var _start:Number;
+	public class VideoPlayer extends Sprite implements IVideoPlayer {
+		private var _nc : NetConnection;
+		private var _ns : NetStream;
+		private var _video : Video;
+		private var _soundId : String;
+		private var _sound : ISoundObject;
+		private var _metadata : Object;
+		private var _isPlay : Boolean;
+		private var _completed : Boolean;
+		private var _repeat : Boolean;
+		private var _autoRewind : Boolean;
+		private var _parts : Array;
+		private var _request : URLRequest;
+		private var url_re : RegExp;
+		private var _load : Boolean;
+		private var _tempSondTransrform : SoundTransform;
+		private var _duration : *;
+		private var _streming : Boolean;
+		private var _prevTime : Number;
+		private var _count : int;
+		private var _timeout : int;
+		private var _bufferEmpty : Boolean;
+		private var _start : Number;
 
 		[Event( name="metadataReceived", type="jp.cellfusion.events.VideoEvent" )]
 		[Event( name="playStart", type="jp.cellfusion.events.VideoEvent" )]
@@ -68,8 +67,7 @@ package jp.cellfusion.ui.video
 		[Event( name="loadStart", type="jp.cellfusion.events.VideoEvent" )]
 		[Event( name="loadComplete", type="jp.cellfusion.events.VideoEvent" )]
 		[Event( name="progress", type="jp.cellfusion.events.VideoProgressEvent" )]
-		public function VideoPlayer(id:String, width:Number, height:Number)
-		{
+		public function VideoPlayer(id : String, width : Number, height : Number) {
 			url_re = /^rtmp\:\/\/([\S^\/]+?)\/([\S^\/]+?)\/(.+)$/;
 
 			_nc = new NetConnection();
@@ -102,29 +100,25 @@ package jp.cellfusion.ui.video
 			_bufferEmpty = false;
 		}
 
-		private function netConnectionSecurityError(event:SecurityErrorEvent):void
-		{
-//			trace("netConnectionSecurityError", event.text);
+		private function netConnectionSecurityError(event : SecurityErrorEvent) : void {
+			// trace("netConnectionSecurityError", event.text);
 		}
 
-		private function netConnectionIoError(event:IOErrorEvent):void
-		{
-//			trace("netConnectionIoError", event.text);
+		private function netConnectionIoError(event : IOErrorEvent) : void {
+			// trace("netConnectionIoError", event.text);
 		}
 
-		private function netConnectionAsyncError(event:AsyncErrorEvent):void
-		{
-//			trace("netConnectionAsyncError", event.text);
+		private function netConnectionAsyncError(event : AsyncErrorEvent) : void {
+			// trace("netConnectionAsyncError", event.text);
 		}
 
-		private function connectionNsStatusHandler(event:NetStatusEvent):void
-		{
-//			trace("connectionNsStatusHandler", event.info.code, event.info.level);
-//			if (event.info.level == "error") {
-//				_nc.connect(getConnectURL(_request.url));
-//				return;
-//			}
-			
+		private function connectionNsStatusHandler(event : NetStatusEvent) : void {
+			// trace("connectionNsStatusHandler", event.info.code, event.info.level);
+			// if (event.info.level == "error") {
+			// _nc.connect(getConnectURL(_request.url));
+			// return;
+			// }
+
 			if (event.info.code == "NetConnection.Connect.Success") {
 				if (_ns == null) {
 					_ns = new NetStream(_nc);
@@ -139,104 +133,50 @@ package jp.cellfusion.ui.video
 				if (_sound == null) {
 					_ns.soundTransform = _tempSondTransrform;
 					_sound = SoundManager.instance.add(new VideoSound(_ns), _soundId);
-//					_sound.volume = 1.0;
+					// _sound.volume = 1.0;
 				}
 
 				_streming = url_re.test(_request.url);
 
 				_bufferEmpty = false;
 				_nc.call("getStreamLength", new Responder(getStreamLengthResult), getVideoURL(_request.url));
-<<<<<<< HEAD
-				
-				// metadata がくるまで再生はまつ
-=======
 
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
+				// metadata がくるまで再生はまつ
 				_ns.play(getVideoURL(_request.url));
-				
-//				loadStart();
+
+				// loadStart();
 
 				if (_load) {
 					_ns.pause();
 					// _ns.seek(0);
 				}
 
-//				updateHandler();
-<<<<<<< HEAD
+				// updateHandler();
 			}
 		}
 
-		private function nsError(event:ErrorEvent):void
-		{
-//			trace("nsError");
+		private function nsError(event : ErrorEvent) : void {
+			// trace("nsError");
 		}
 
-		private function nsAsyncError(event:AsyncErrorEvent):void
-		{
-//			trace("nsAsyncError", event.error);
-		}
-		
-		private function cuePointHandler(data:Object):void
-		{
-//			trace("cuePointHandler");
-		}
-		
-		private function imageDataHandler(data:Object):void
-		{
-//			trace("imageDataHandler");
-		}
-		
-		private function textDataHandler(data:Object):void
-		{
-//			trace("textDataHandler");
+		private function nsAsyncError(event : AsyncErrorEvent) : void {
+			// trace("nsAsyncError", event.error);
 		}
 
-		private function metaDataHandler(data:Object):void
-		{
-//			trace("metadataHandler");
-			if (!_isPlay) {
-				// _ns.seek(0);
-=======
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
-			}
-
-			_metadata = data;
-			dispatchEvent(new VideoEvent(VideoEvent.METADATA_RECEIVED));
+		private function cuePointHandler(data : Object) : void {
+			// trace("cuePointHandler");
 		}
 
-		private function playStatusHandler(data:Object):void
-		{
-//			trace("onPlayStatus");
+		private function imageDataHandler(data : Object) : void {
+			// trace("imageDataHandler");
 		}
 
-		private function nsError(event:ErrorEvent):void
-		{
-//			trace("nsError");
+		private function textDataHandler(data : Object) : void {
+			// trace("textDataHandler");
 		}
 
-		private function nsAsyncError(event:AsyncErrorEvent):void
-		{
-//			trace("nsAsyncError", event.error);
-		}
-		
-		private function cuePointHandler(data:Object):void
-		{
-//			trace("cuePointHandler");
-		}
-		
-		private function imageDataHandler(data:Object):void
-		{
-//			trace("imageDataHandler");
-		}
-		
-		private function textDataHandler(data:Object):void
-		{
-//			trace("textDataHandler");
-		}
-
-		private function metaDataHandler(data:Object):void
-		{
-//			trace("metadataHandler");
+		private function metaDataHandler(data : Object) : void {
+			// trace("metadataHandler");
 			if (!_isPlay) {
 				// _ns.seek(0);
 			}
@@ -245,22 +185,21 @@ package jp.cellfusion.ui.video
 			dispatchEvent(new VideoEvent(VideoEvent.METADATA_RECEIVED));
 		}
 
-		private function playStatusHandler(data:Object):void
-		{
-//			trace("onPlayStatus");
+		private function playStatusHandler(data : Object) : void {
+			// trace("onPlayStatus");
 		}
 
-		private function getVideoURL(url:String):String
-		{
+
+		private function getVideoURL(url : String) : String {
 			// rtmp の場合のみ判定
 			if (url_re.test(url)) {
-				var rst:Array = url.match(url_re);
-				var path:String = rst[3];
-				var file:String;
-				
+				var rst : Array = url.match(url_re);
+				var path : String = rst[3];
+				var file : String;
+
 				// 拡張子を取り除く必要がある
 				if (/(f4v|mp4)$/.test(path)) {
-//					file = "mp4:" + path.split(".")[0];
+					// file = "mp4:" + path.split(".")[0];
 					file = "mp4:" + path;
 				} else {
 					file = path.split(".")[0];
@@ -272,14 +211,13 @@ package jp.cellfusion.ui.video
 			return url;
 		}
 
-		private function getConnectURL(url:String):String
-		{
+		private function getConnectURL(url : String) : String {
 			if (url_re.test(url)) {
-				var rst:Array = url.match(url_re);
-				var domain:String = rst[1];
-				var application:String = rst[2];
-				var path:String = rst[3];
-				var temp:String = "rtmp://" + domain + "/" + application;
+				var rst : Array = url.match(url_re);
+				var domain : String = rst[1];
+				var application : String = rst[2];
+				var path : String = rst[3];
+				var temp : String = "rtmp://" + domain + "/" + application;
 
 				return temp;
 			}
@@ -287,9 +225,8 @@ package jp.cellfusion.ui.video
 			return null;
 		}
 
-		private	function getStreamLengthResult(value:*):void
-		{
-//			trace("getStreamLengthResult", this, value);
+		private	function getStreamLengthResult(value : *) : void {
+			// trace("getStreamLengthResult", this, value);
 			_duration = value;
 			_ns.seek(0);
 		}
@@ -297,8 +234,7 @@ package jp.cellfusion.ui.video
 		/**
 		 * 途中シーク出来てもいい気がする
 		 */
-		public function play(request:URLRequest = null, play:Boolean = false, start:Number = -2):void
-		{
+		public function play(request : URLRequest = null, play : Boolean = false, start : Number = -2) : void {
 			_start = start;
 
 			if (request) {
@@ -333,8 +269,7 @@ package jp.cellfusion.ui.video
 			_isPlay = true;
 		}
 
-		public function pause(temporary:Boolean = false):void
-		{
+		public function pause(temporary : Boolean = false) : void {
 			if (!temporary) {
 				_isPlay = false;
 				updateHandler();
@@ -345,8 +280,7 @@ package jp.cellfusion.ui.video
 			removeEventListener(Event.ENTER_FRAME, updateHandler);
 		}
 
-		public function stop():void
-		{
+		public function stop() : void {
 			_isPlay = false;
 
 			if (_ns) {
@@ -361,8 +295,7 @@ package jp.cellfusion.ui.video
 			dispatchEvent(new VideoEvent(VideoEvent.PLAY_STOP));
 		}
 
-		public function resume(temporary:Boolean = false):void
-		{
+		public function resume(temporary : Boolean = false) : void {
 			if (!temporary) {
 				_isPlay = true;
 				updateHandler();
@@ -373,24 +306,21 @@ package jp.cellfusion.ui.video
 			addEventListener(Event.ENTER_FRAME, updateHandler);
 		}
 
-		public function togglePause():void
-		{
+		public function togglePause() : void {
 			_isPlay != _isPlay;
 			_ns.togglePause();
 			updateHandler();
 		}
 
-		public function load(request:URLRequest):void
-		{
+		public function load(request : URLRequest) : void {
 			_load = true;
 			_request = request;
 			_nc.connect(getConnectURL(request.url));
-			
+
 			loadStart();
 		}
 
-		public function seek(offset:Number):void
-		{
+		public function seek(offset : Number) : void {
 			_ns.seek(offset);
 			_bufferEmpty = true;
 
@@ -399,51 +329,38 @@ package jp.cellfusion.ui.video
 			}
 		}
 
-		public function close():void
-		{
+		public function close() : void {
 			stop();
-<<<<<<< HEAD
-			
-//			_video.attachNetStream(null);
+
+			// _video.attachNetStream(null);
 			removeChild(_video);
 			_video.clear();
 			_video = null;
-			
+
 			SoundManager.instance.remove(_soundId);
 			_sound = null;
-=======
-			SoundManager.instance.remove(_soundId);
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 
 			if (_ns) {
 				_ns.close();
 			}
-<<<<<<< HEAD
 			_ns = null;
-=======
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
-			
 			_nc.close();
-			
+
 			_nc.removeEventListener(NetStatusEvent.NET_STATUS, connectionNsStatusHandler);
 			_nc.removeEventListener(AsyncErrorEvent.ASYNC_ERROR, netConnectionAsyncError);
 			_nc.removeEventListener(IOErrorEvent.IO_ERROR, netConnectionIoError);
 			_nc.removeEventListener(SecurityErrorEvent.SECURITY_ERROR, netConnectionSecurityError);
-<<<<<<< HEAD
 			_nc = null;
-=======
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 		}
 
-		private function complete():void
-		{
+		private function complete() : void {
 			if (_completed) {
 				return;
 			}
-			
+
 			removeEventListener(Event.ENTER_FRAME, updateHandler);
-			
-//			pause();
+
+			// /			pause();
 
 			if (_repeat) {
 				seek(0);
@@ -456,33 +373,29 @@ package jp.cellfusion.ui.video
 			_completed = true;
 			_isPlay = false;
 			dispatchEvent(new VideoEvent(VideoEvent.COMPLETE));
-
 		}
 
-		private function reset():void
-		{
+		private function reset() : void {
 			for each (var i : IControllerParts in _parts) {
 				i.reset();
 			}
 		}
 
 		//
-		private function loadStart():void
-		{
+		private function loadStart() : void {
 			dispatchEvent(new VideoEvent(VideoEvent.LOAD_START));
 			addEventListener(Event.ENTER_FRAME, loadProgress);
 		}
 
-		private function loadProgress(event:Event):void
-		{
-			var loaded:uint = _ns.bytesLoaded;
-			var total:uint = _ns.bytesTotal;
+		private function loadProgress(event : Event) : void {
+			var loaded : uint = _ns.bytesLoaded;
+			var total : uint = _ns.bytesTotal;
 
 			dispatchEvent(new VideoProgressEvent(VideoProgressEvent.PROGRESS, false, false, loaded, total));
 
 			try {
 				updateHandler();
-			} catch(error:Error) {
+			} catch(error : Error) {
 			}
 
 			if (loaded >= total && total > 0) {
@@ -490,24 +403,21 @@ package jp.cellfusion.ui.video
 			}
 		}
 
-		private function loadComplete():void
-		{
+		private function loadComplete() : void {
 			removeEventListener(Event.ENTER_FRAME, loadProgress);
 			dispatchEvent(new VideoEvent(VideoEvent.LOAD_COMPLETE));
 		}
 
-		private function updateHandler(event:Event = null):void
-		{
+		private function updateHandler(event : Event = null) : void {
 			update();
 		}
 
-		public function update(countup:Boolean = true):void
-		{
-//			trace("update");
+		public function update(countup : Boolean = true) : void {
+			// trace("update");
 			for each (var i : IControllerParts in _parts) {
 				i.update();
 
-				var seekbar:SeekBarBase = i as SeekBarBase;
+				var seekbar : SeekBarBase = i as SeekBarBase;
 				if (seekbar) {
 					if (seekbar.isDrag) {
 						countup = false;
@@ -519,8 +429,8 @@ package jp.cellfusion.ui.video
 			if (_bufferEmpty) {
 				countup = false;
 			}
-			
-			//trace("isPlay", _isPlay, "nc.connected", _nc.connected, "time", time, "duration", duration);
+
+			// trace("isPlay", _isPlay, "nc.connected", _nc.connected, "time", time, "duration", duration);
 			if (_isPlay && _nc.connected && time > 0 && duration > 0 && Math.abs(duration - time) < 1) {
 				if (_prevTime == time && countup) {
 					_count++;
@@ -528,7 +438,7 @@ package jp.cellfusion.ui.video
 					_count = 0;
 					_prevTime = time;
 				}
-				
+
 				if (_count > _timeout) {
 					complete();
 				}
@@ -547,9 +457,8 @@ package jp.cellfusion.ui.video
 			}
 		}
 
-		private function nsStatus(event:NetStatusEvent):void
-		{
-//			trace("nsStatus", event.info.code);
+		private function nsStatus(event : NetStatusEvent) : void {
+			// trace("nsStatus", event.info.code);
 			switch (event.info.code) {
 				case "NetStream.Buffer.Empty":
 					if (_count > 0) return;
@@ -596,95 +505,79 @@ package jp.cellfusion.ui.video
 			}
 		}
 
-		private function nsIoError(event:IOErrorEvent):void
-		{
-//			trace("nsIoError", event.text);
+		private function nsIoError(event : IOErrorEvent) : void {
+			// trace("nsIoError", event.text);
 			dispatchEvent(event);
 		}
 
 		//
-		public function get time():Number
-		{
+		public function get time() : Number {
 			return _ns ? _ns.time : 0;
 		}
 
-		public function get duration():Number
-		{
+		public function get duration() : Number {
 			return _metadata ? _metadata.duration : _duration;
 		}
 
-		public function get bytesLoaded():Number
-		{
+		public function get bytesLoaded() : Number {
 			if (_streming) return 1;
 
 			return _ns ? _ns.bytesLoaded : 0;
 		}
 
-		public function get bytesTotal():Number
-		{
+		public function get bytesTotal() : Number {
 			if (_streming) return 1;
 
 			return _ns ? _ns.bytesTotal : 0;
 		}
 
-		public function get bufferLength():Number
-		{
+		public function get bufferLength() : Number {
 			return _ns ? _ns.bufferLength : 0;
 		}
 
-		public function get bufferTime():Number
-		{
+		public function get bufferTime() : Number {
 			return _ns ? _ns.bufferTime : 0;
 		}
 
-		public function set bufferTime(value:Number):void
-		{
+		public function set bufferTime(value : Number) : void {
 			_ns.bufferTime = value;
 		}
 
-		public override function get soundTransform():SoundTransform
-		{
+		public override function get soundTransform() : SoundTransform {
 			return _ns ? _ns.soundTransform : _tempSondTransrform;
 		}
 
-		public function get metadata():Object
-		{
+		public function get metadata() : Object {
 			return _metadata;
 		}
 
-		public function get volume():Number
-		{
+		public function get volume() : Number {
 			return _sound ? _sound.volume : _tempSondTransrform.volume;
 		}
 
-		public function get autoRewind():Boolean
-		{
+		public function get autoRewind() : Boolean {
 			return _autoRewind;
 		}
 
-		public function get preferredHeight():Number
-		{
+		public function get preferredHeight() : Number {
 			if (!_metadata) {
 				return 0;
 			}
 			return metadata.height;
 		}
 
-		public function get preferredWidth():Number
-		{
+		public function get preferredWidth() : Number {
 			if (!_metadata) {
 				return 0;
 			}
 			return metadata.width;
 		}
 
-		public function get smoothing():Boolean
-		{
+		public function get smoothing() : Boolean {
 			return _video.smoothing;
 		}
 
-		public function set volume(offset:Number):void
-		{
+		public function set volume(offset : Number) : void {
 			if (!_sound) {
 				_tempSondTransrform.volume = offset;
 				return;
@@ -694,42 +587,33 @@ package jp.cellfusion.ui.video
 			updateHandler();
 		}
 
-		public function set autoRewind(value:Boolean):void
-		{
+		public function set autoRewind(value : Boolean) : void {
 			_autoRewind = value;
 		}
 
-		public function set smoothing(value:Boolean):void
-		{
+		public function set smoothing(value : Boolean) : void {
 			_video.smoothing = value;
 		}
 
-		public function addParts(parts:IControllerParts):void
-		{
+		public function addParts(parts : IControllerParts) : void {
 			_parts.push(parts);
 			parts.initialize(this);
 		}
 
-		public function removeParts(parts:IControllerParts):void
-		{
-			var idx:int = _parts.indexOf(parts);
+		public function removeParts(parts : IControllerParts) : void {
+			var idx : int = _parts.indexOf(parts);
 			_parts.splice(idx, 1);
 			parts.finalize();
 		}
 
-		public function get isPlay():Boolean
-		{
+		public function get isPlay() : Boolean {
 			return _isPlay;
 		}
 
-		public function get streming():Boolean
-		{
+		public function get streming() : Boolean {
 			return _streming;
 		}
 	}
 }
-
-class NetStreamClient extends Object
-{
-	
+class NetStreamClient extends Object {
 }

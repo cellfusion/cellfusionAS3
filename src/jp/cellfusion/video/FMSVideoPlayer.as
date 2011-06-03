@@ -1,7 +1,4 @@
-package jp.cellfusion.video
-{
-<<<<<<< HEAD
-	import jp.cellfusion.logger.Logger;
+package jp.cellfusion.video {
 	import jp.cellfusion.events.VideoEvent;
 	import jp.cellfusion.events.VideoProgressEvent;
 	import jp.cellfusion.sound.ISoundObject;
@@ -10,6 +7,7 @@ package jp.cellfusion.video
 	import jp.cellfusion.ui.video.IVideoPlayer;
 	import jp.cellfusion.ui.video.ui.IControllerParts;
 	import jp.cellfusion.ui.video.ui.SeekBarBase;
+	import jp.nium.core.debug.Logger;
 
 	import flash.display.Sprite;
 	import flash.events.AsyncErrorEvent;
@@ -24,13 +22,7 @@ package jp.cellfusion.video
 	import flash.net.NetStream;
 	import flash.net.Responder;
 	import flash.net.URLRequest;
-=======
-	import flash.display.Sprite;
-	import flash.net.URLRequest;
-	import jp.cellfusion.ui.video.IVideoPlayer;
-	import jp.cellfusion.ui.video.ui.IControllerParts;
 
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
 
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
@@ -38,7 +30,6 @@ package jp.cellfusion.video
 	 */
 	public class FMSVideoPlayer extends Sprite implements IVideoPlayer
 	{
-<<<<<<< HEAD
 		private var _nc : NetConnection;
 		private var _ns : NetStream;
 		private var _video : Video;
@@ -228,7 +219,6 @@ package jp.cellfusion.video
 				} else {
 					file = path.split(".")[0];
 				}
-				Logger.trace("file", file);
 
 				return file;
 			}
@@ -252,7 +242,6 @@ package jp.cellfusion.video
 
 		private	function getStreamLengthResult(value : *) : void
 		{
-			Logger.trace("getStreamLengthResult", this, value);
 			_duration = value;
 			_ns.seek(0);
 		}
@@ -292,7 +281,6 @@ package jp.cellfusion.video
 
 			// METADATA がくるまで待機
 			if (_metadata && _metadata.duration) {
-				Logger.trace("play");
 				updateHandler();
 				addEventListener(Event.ENTER_FRAME, updateHandler);
 				dispatchEvent(new VideoEvent(VideoEvent.PLAY_START));
@@ -305,7 +293,6 @@ package jp.cellfusion.video
 		private function playMetadataStay(event : VideoEvent) : void
 		{
 			removeEventListener(VideoEvent.METADATA_RECEIVED, playMetadataStay);
-			Logger.trace("playMetadataStay");
 
 			updateHandler();
 			addEventListener(Event.ENTER_FRAME, updateHandler);
@@ -685,132 +672,9 @@ package jp.cellfusion.video
 		public function get streming() : Boolean
 		{
 			return _streming;
-=======
-		public function FMSVideoPlayer()
-		{
 		}
+		
 
-		public function play(request:URLRequest = null, play:Boolean = false, start:Number = 0):void
-		{
-		}
 
-		public function pause(temporary:Boolean = false):void
-		{
-		}
-
-		public function stop():void
-		{
-		}
-
-		public function resume(temporary:Boolean = false):void
-		{
-		}
-
-		public function togglePause():void
-		{
-		}
-
-		public function load(request:URLRequest):void
-		{
-		}
-
-		public function seek(offset:Number):void
-		{
-		}
-
-		public function addParts(parts:IControllerParts):void
-		{
-		}
-
-		public function removeParts(parts:IControllerParts):void
-		{
-		}
-
-		public function close():void
-		{
-		}
-
-		public function get time():Number
-		{
-			return 0;
-		}
-
-		public function get duration():Number
-		{
-			return 0;
-		}
-
-		public function get bytesLoaded():Number
-		{
-			return 0;
-		}
-
-		public function get bytesTotal():Number
-		{
-			return 0;
-		}
-
-		public function get bufferLength():Number
-		{
-			return 0;
-		}
-
-		public function get bufferTime():Number
-		{
-			return 0;
-		}
-
-		public function get metadata():Object
-		{
-			return null;
-		}
-
-		public function get volume():Number
-		{
-			return 0;
-		}
-
-		public function set volume(offset:Number):void
-		{
-		}
-
-		public function get autoRewind():Boolean
-		{
-			return false;
-		}
-
-		public function set autoRewind(value:Boolean):void
-		{
-		}
-
-		public function get preferredHeight():Number
-		{
-			return 0;
-		}
-
-		public function get preferredWidth():Number
-		{
-			return 0;
-		}
-
-		public function get smoothing():Boolean
-		{
-			return false;
-		}
-
-		public function set smoothing(value:Boolean):void
-		{
-		}
-
-		public function get isPlay():Boolean
-		{
-			return false;
-		}
-
-		public function get streming():Boolean
-		{
-			return false;
->>>>>>> 1d9e0a7ce840b62f980d70748f4cbd26405e393a
-		}
 	}
 }
