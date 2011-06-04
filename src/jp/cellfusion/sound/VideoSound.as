@@ -23,13 +23,15 @@ package jp.cellfusion.sound {
 		private var _fadeStartVolume:Number;
 		private var _muteVolume:Number;
 		private var _isMute:Boolean;
-		private var _isSolo:Boolean;
+		private var _isSolo : Boolean;
+		private var _extra : Object;
 
 		public function VideoSound(ns:NetStream)
 		{
 			_ns = ns;
 			_soundTransform = _ns.soundTransform;
 			volume = 1;
+			_extra = {};
 
 			_fadeTimer = new Timer(250, 4);
 			_fadeTimer.addEventListener(TimerEvent.TIMER, fadeProgress);
@@ -151,6 +153,11 @@ package jp.cellfusion.sound {
 		
 		public function set atFadeComplete(value:Function):void
 		{
+		}
+		
+		public function get extra():Object
+		{
+			return _extra;
 		}
 	}
 }

@@ -30,5 +30,7 @@ package jp.cellfusion.sound {
 		function set atSoundComplete(value : Function) : void;
 
 		function set atFadeComplete(value : Function) : void;
+		
+		function get extra():Object;
 	}
 }

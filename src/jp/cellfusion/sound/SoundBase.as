@@ -1,7 +1,6 @@
 package jp.cellfusion.sound
 {
 	import fl.motion.easing.Linear;
-
 	import flash.events.Event;
 	import flash.events.TimerEvent;
 	import flash.media.Sound;
@@ -39,6 +38,7 @@ package jp.cellfusion.sound
 		private var _isSolo:Boolean;
 		private var _atSoundComplete:Function;
 		private var _atFadeComplete:Function;
+		private var _extra : Object;
 
 		public function SoundBase(sound:Sound, type:uint = BGM)
 		{
@@ -48,6 +48,7 @@ package jp.cellfusion.sound
 			_state = STATE_STOP;
 			_isMute = false;
 			_isSolo = false;
+			_extra = {};
 			
 			_volume = 1;
 
@@ -257,6 +258,11 @@ package jp.cellfusion.sound
 		public function set atFadeComplete(value:Function):void
 		{
 			_atFadeComplete = value;
+		}
+		
+		public function get extra():Object
+		{
+			return _extra;
 		}
 	}
 }
