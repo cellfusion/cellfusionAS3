@@ -1,7 +1,5 @@
 package jp.cellfusion.sound
 {
-	import fl.motion.easing.Linear;
-
 	import jp.cellfusion.events.SoundManagerEvent;
 
 	import flash.events.EventDispatcher;
@@ -115,14 +113,14 @@ package jp.cellfusion.sound
 				}
 
 				if (fade) {
-					easing = easing || Linear.easeNone;
+					easing = easing || easeNone;
 					fadeStart(0, seconds, easing);
 				} else {
 					volume = 0;
 				}
 			} else {
 				if (fade) {
-					easing = easing || Linear.easeNone;
+					easing = easing || easeNone;
 					fadeStart(_muteVolume, seconds, easing);
 				} else {
 					volume = _muteVolume;
@@ -195,6 +193,10 @@ package jp.cellfusion.sound
 			
 			dispatchEvent(new SoundManagerEvent(SoundManagerEvent.MASTER_FADE_COMPLETE));
 			_isProgress = false;
+		}
+		
+		private function easeNone (t:Number, b:Number, c:Number, d:Number):Number {
+			return c*t/d + b;
 		}
 	}
 }

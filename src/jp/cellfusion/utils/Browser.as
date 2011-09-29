@@ -72,7 +72,7 @@ package jp.cellfusion.utils
 			}
 		}
 		
-		public static function blankWindow(request:URLRequest):void
+		public static function blankWindow(request:URLRequest, name:String = "_blank", option:String = ""):void
 		{
 			if (!_isReady) {
 				initialize();
@@ -80,19 +80,19 @@ package jp.cellfusion.utils
 			
 //			trace('blankWindow');
 			if (_isIE) {
-				ExternalInterface.call('window.open', request.url, "_blank");
+				ExternalInterface.call('window.open', request.url, name);
 			} else if (_isFirefox) {
-				ExternalInterface.call('window.open', request.url, "_blank");
+				ExternalInterface.call('window.open', request.url, name);
 			} else if (_isSafari) {
-				navigateToURL(request, "_blank");
+				navigateToURL(request, name);
 			} else if (_isChrome) {
-				navigateToURL(request, "_blank");
+				navigateToURL(request, name);
 			} else if (_isOpera) {
-				ExternalInterface.call('window.open', request.url, "_blank");
+				ExternalInterface.call('window.open', request.url, name);
 			} else if (_isLunascape) {
-				ExternalInterface.call('window.open', request.url, "_blank");
+				ExternalInterface.call('window.open', request.url, name);
 			} else {
-				ExternalInterface.call('window.open', request.url, "_blank");
+				ExternalInterface.call('window.open', request.url, name);
 			}
 		}
 

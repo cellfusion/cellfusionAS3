@@ -2,6 +2,7 @@ package jp.cellfusion.scenes
 {
 	import flash.events.Event;
 	import flash.display.Stage;
+
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 */
@@ -12,8 +13,7 @@ package jp.cellfusion.scenes
 		private var _current:IScene;
 		private var _stage:Stage;
 
-		static public function get instance():SceneManager
-		{
+		static public function get instance():SceneManager {
 			if (!_instance) _instance = new SceneManager(new SingletonEnforcer());
 			return _instance;
 		}
@@ -28,27 +28,38 @@ package jp.cellfusion.scenes
 			if (!_isInitialize) {
 				_isInitialize = true;
 			}
-			
+
 			scene.initialize(stage);
 			_stage = stage;
-			
+
 			_current = scene;
 			stage.addEventListener(Event.ENTER_FRAME, update);
 		}
 
 		private function update(event:Event):void
 		{
-			_current.update();
+			try {
+				_current.update();
+			} catch(error:Error) {
+				trace("update error", error.message);
+			}
 		}
 
 		public function change(scene:IScene):void
 		{
+			trace("change", scene);
+			// _stage.removeEventListener(Event.ENTER_FRAME, update);
+
+			trace(_current, "finalize");
 			_current.finalize();
-			
+			_current = null;
+
+			trace(scene, "initialize");
 			scene.initialize(_stage);
 			_current = scene;
 		}
 	}
 }
-
-class SingletonEnforcer {}
+class SingletonEnforcer
+{
+}

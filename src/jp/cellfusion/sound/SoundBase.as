@@ -1,6 +1,8 @@
 package jp.cellfusion.sound
 {
-	import fl.motion.easing.Linear;
+	import jp.cellfusion.events.SoundObjectEvent;
+
+	import flash.events.EventDispatcher;
 	import flash.events.Event;
 	import flash.events.TimerEvent;
 	import flash.media.Sound;
@@ -12,7 +14,7 @@ package jp.cellfusion.sound
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 */
-	public class SoundBase
+	public class SoundBase extends EventDispatcher implements ISoundObject
 	{
 		public static const BGM:uint = 0;
 		public static const SE:uint = 1;
@@ -38,23 +40,31 @@ package jp.cellfusion.sound
 		private var _isSolo:Boolean;
 		private var _atSoundComplete:Function;
 		private var _atFadeComplete:Function;
-		private var _extra : Object;
+		private var _extra:Object;
 
 		public function SoundBase(sound:Sound, type:uint = BGM)
 		{
+			super();
+
 			_sound = sound;
+			_sound.addEventListener(Event.COMPLETE, soundLoadComplete);
 			_type = type;
 			_soundTransform = new SoundTransform();
 			_state = STATE_STOP;
 			_isMute = false;
 			_isSolo = false;
 			_extra = {};
-			
+
 			_volume = 1;
 
 			_fadeTimer = new Timer(250, 4);
 			_fadeTimer.addEventListener(TimerEvent.TIMER, fadeProgress);
 			_fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, fadeComplete);
+		}
+
+		private function soundLoadComplete(event:Event):void
+		{
+			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_LOAD_COMPLETE));
 		}
 
 		public function mute(fade:Boolean = false, seconds:Number = 1, easing:Function = null):void
@@ -63,14 +73,14 @@ package jp.cellfusion.sound
 				_muteVolume = volume;
 
 				if (fade) {
-					easing = easing || Linear.easeNone;
+					easing = easing || easeNone;
 					fadeStart(0, seconds, easing);
 				} else {
 					volume = 0;
 				}
 			} else {
 				if (fade) {
-					easing = easing || Linear.easeNone;
+					easing = easing || easeNone;
 					fadeStart(_muteVolume, seconds, easing);
 				} else {
 					volume = _muteVolume;
@@ -107,12 +117,12 @@ package jp.cellfusion.sound
 			}
 		}
 
-		private function playSE(startTime:Number = 0):void
+		protected function playSE(startTime:Number = 0):void
 		{
 			_channel = _sound.play(startTime, 0, _soundTransform);
 		}
 
-		private function playBGM(startTime:Number = 0, loops:int = 0):void
+		protected function playBGM(startTime:Number = 0, loops:int = 0):void
 		{
 			if (_state == STATE_PLAY) {
 				return;
@@ -123,6 +133,8 @@ package jp.cellfusion.sound
 				_loops = loops;
 				_channel = _sound.play(startTime, loops, _soundTransform);
 				_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+
+				dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_PLAY));
 			}
 		}
 
@@ -134,6 +146,8 @@ package jp.cellfusion.sound
 			_state = STATE_STOP;
 			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 			_channel = null;
+			
+			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_COMPLETE));
 		}
 
 		public function stop():void
@@ -145,6 +159,8 @@ package jp.cellfusion.sound
 			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 			_channel.stop();
 			_channel = null;
+
+			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_STOP));
 		}
 
 		public function pause():void
@@ -153,6 +169,8 @@ package jp.cellfusion.sound
 				_state = STATE_PLAY;
 				_channel = _sound.play(_channel.position || 0, _loops, _soundTransform);
 				_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+
+				dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_RESUME));
 			} else if (_state == STATE_STOP) {
 			} else {
 				_state = STATE_PAUSE;
@@ -162,6 +180,27 @@ package jp.cellfusion.sound
 				_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 				_channel.stop();
 				// _channel = null;
+
+				dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_PAUSE));
+			}
+		}
+
+		public function seek(position:Number):void
+		{
+			if (_state == STATE_PLAY) {
+				if (_channel) {
+					_channel.stop();
+					_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
+				}
+				
+				_channel = _sound.play(position, _loops, _soundTransform);
+				_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+
+				dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_PLAY));
+			} else if (_state == STATE_PAUSE) {
+				_position = position;
+			} else if (_state == STATE_STOP) {
+			} else {
 			}
 		}
 
@@ -180,6 +219,13 @@ package jp.cellfusion.sound
 			if (_channel) {
 				_channel.soundTransform = _soundTransform;
 			}
+
+			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_VOLUME_CHANGE));
+		}
+		
+		public function fade(volume:Number, seconds:Number, easing:Function):void
+		{
+			fadeStart(volume, seconds, easing);
 		}
 
 		private function fadeStart(volume:Number, seconds:Number, easing:Function):void
@@ -209,12 +255,20 @@ package jp.cellfusion.sound
 		private function fadeComplete(event:TimerEvent):void
 		{
 			volume = _fadeTargetVolume;
-			
+
 			if (_atFadeComplete != null) {
 				_atFadeComplete.apply();
 			}
 		}
 
+		public function close():void
+		{
+			try {
+				_sound.close();
+			} catch(error:Error) {
+			}
+		}
+		
 		public function destroy():void
 		{
 			if (_channel) {
@@ -226,10 +280,10 @@ package jp.cellfusion.sound
 				_sound.close();
 			} catch(error:Error) {
 			}
-			
+
 			_sound = null;
 			_soundTransform = null;
-			
+
 			_fadeTimer.removeEventListener(TimerEvent.TIMER, fadeProgress);
 			_fadeTimer.removeEventListener(TimerEvent.TIMER_COMPLETE, fadeComplete);
 			_fadeTimer = null;
@@ -249,7 +303,12 @@ package jp.cellfusion.sound
 		{
 			return _channel ? _channel.position : 0;
 		}
-		
+
+		public function get length():Number
+		{
+			return _sound ? _sound.length : 0;
+		}
+
 		public function set atSoundComplete(value:Function):void
 		{
 			_atSoundComplete = value;
@@ -259,10 +318,30 @@ package jp.cellfusion.sound
 		{
 			_atFadeComplete = value;
 		}
-		
+
 		public function get extra():Object
 		{
 			return _extra;
+		}
+
+		private function easeNone(t:Number, b:Number, c:Number, d:Number):Number
+		{
+			return c * t / d + b;
+		}
+
+		public function get bytesLoaded():Number
+		{
+			return _sound ? _sound.bytesLoaded : 0;
+		}
+
+		public function get bytesTotal():Number
+		{
+			return _sound ? _sound.bytesTotal : 0;
+		}
+
+		public function get sound():Sound
+		{
+			return _sound;
 		}
 	}
 }

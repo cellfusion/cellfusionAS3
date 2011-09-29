@@ -1,6 +1,7 @@
-package jp.cellfusion.sound {
-	import fl.motion.easing.Linear;
-
+package jp.cellfusion.sound
+{
+	import flash.media.Sound;
+	import flash.events.EventDispatcher;
 	import flash.events.TimerEvent;
 	import flash.media.SoundTransform;
 	import flash.net.NetStream;
@@ -10,7 +11,7 @@ package jp.cellfusion.sound {
 	/**
 	 * @author Mk-10:cellfusion (www.cellfusion.jp)
 	 */
-	public class VideoSound implements ISoundObject
+	public class VideoSound extends EventDispatcher implements ISoundObject
 	{
 		private var _ns:NetStream;
 		private var _soundTransform:SoundTransform;
@@ -23,8 +24,8 @@ package jp.cellfusion.sound {
 		private var _fadeStartVolume:Number;
 		private var _muteVolume:Number;
 		private var _isMute:Boolean;
-		private var _isSolo : Boolean;
-		private var _extra : Object;
+		private var _isSolo:Boolean;
+		private var _extra:Object;
 
 		public function VideoSound(ns:NetStream)
 		{
@@ -36,6 +37,11 @@ package jp.cellfusion.sound {
 			_fadeTimer = new Timer(250, 4);
 			_fadeTimer.addEventListener(TimerEvent.TIMER, fadeProgress);
 			_fadeTimer.addEventListener(TimerEvent.TIMER_COMPLETE, fadeComplete);
+		}
+		
+		public function fade(volume:Number, seconds:Number, easing:Function):void
+		{
+			fadeStart(volume, seconds, easing);
 		}
 
 		public function play(startTime:Number = 0, loops:int = 0):void
@@ -66,7 +72,7 @@ package jp.cellfusion.sound {
 
 		public function set volume(value:Number):void
 		{
-//			trace("volume", _volume * SoundManager.instance.volume, value, _volume, SoundManager.instance.volume);
+			// trace("volume", _volume * SoundManager.instance.volume, value, _volume, SoundManager.instance.volume);
 			_volume = value;
 			_soundTransform.volume = _volume * SoundManager.instance.volume;
 			_ns.soundTransform = _soundTransform;
@@ -78,14 +84,14 @@ package jp.cellfusion.sound {
 				_muteVolume = volume;
 
 				if (fade) {
-					easing = easing || Linear.easeNone;
+					easing = easing || easeNone;
 					fadeStart(0, seconds, easing);
 				} else {
 					volume = 0;
 				}
 			} else {
 				if (fade) {
-					easing = easing || Linear.easeNone;
+					easing = easing || easeNone;
 					fadeStart(_muteVolume, seconds, easing);
 				} else {
 					volume = _muteVolume;
@@ -127,7 +133,7 @@ package jp.cellfusion.sound {
 		public function solo(fade:Boolean = false, seconds:Number = 1, easing:Function = null):void
 		{
 			// TODO solo 実装
-			
+
 			_isSolo = !_isSolo;
 			SoundManager.instance.solo();
 		}
@@ -146,18 +152,55 @@ package jp.cellfusion.sound {
 		{
 			return _ns ? _ns.time : 0;
 		}
-		
+
+		public function get length():Number
+		{
+			return 0;
+		}
+
 		public function set atSoundComplete(value:Function):void
 		{
 		}
-		
+
 		public function set atFadeComplete(value:Function):void
 		{
 		}
-		
+
 		public function get extra():Object
 		{
 			return _extra;
+		}
+
+		private function easeNone(t:Number, b:Number, c:Number, d:Number):Number
+		{
+			return c * t / d + b;
+		}
+
+		public function seek(position:Number):void
+		{
+		}
+
+		public function get bytesLoaded():Number
+		{
+			return _ns ? _ns.bytesLoaded : 0;
+		}
+
+		public function get bytesTotal():Number
+		{
+			return _ns ? _ns.bytesTotal : 0;
+		}
+
+		public function close():void
+		{
+			try {
+				// _ns.close();
+			} catch(error:Error) {
+			}
+		}
+
+		public function get sound():Sound
+		{
+			return null;
 		}
 	}
 }
