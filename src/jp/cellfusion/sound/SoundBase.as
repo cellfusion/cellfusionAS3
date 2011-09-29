@@ -140,14 +140,15 @@ package jp.cellfusion.sound
 
 		private function soundComplete(event:Event):void
 		{
-			if (_atSoundComplete != null) {
-				_atSoundComplete.apply();
-			}
 			_state = STATE_STOP;
 			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 			_channel = null;
 			
 			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_COMPLETE));
+			
+			if (_atSoundComplete != null) {
+				_atSoundComplete.apply();
+			}
 		}
 
 		public function stop():void
