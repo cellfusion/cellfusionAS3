@@ -7,7 +7,6 @@ package jp.cellfusion.video {
 	import jp.cellfusion.ui.video.IVideoPlayer;
 	import jp.cellfusion.ui.video.ui.IControllerParts;
 	import jp.cellfusion.ui.video.ui.SeekBarBase;
-	import jp.nium.core.debug.Logger;
 
 	import flash.display.Sprite;
 	import flash.events.AsyncErrorEvent;
