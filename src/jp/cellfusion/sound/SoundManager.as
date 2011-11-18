@@ -1,5 +1,7 @@
 package jp.cellfusion.sound
 {
+	import flash.media.SoundTransform;
+	import flash.media.SoundMixer;
 	import jp.cellfusion.events.SoundManagerEvent;
 
 	import flash.events.EventDispatcher;
@@ -149,6 +151,11 @@ package jp.cellfusion.sound
 		{
 //			trace("soundManager", "volume", value);
 			_volume = value;
+
+			var st:SoundTransform = SoundMixer.soundTransform;
+			st.volume = value;
+			
+			SoundMixer.soundTransform = st;
 
 			for each (var so : ISoundObject in _sounds) {
 				so.volume = so.volume;
