@@ -46,7 +46,7 @@ package jp.cellfusion.sound
 			_startTime = startTime;
 			_loops = loops;
 
-			// super.playBGM(startTime, loops);
+			super.playBGM(startTime, loops);
 		}
 
 		private function loadStart():void
@@ -68,7 +68,7 @@ package jp.cellfusion.sound
 		{
 			_loadTimer.removeEventListener(TimerEvent.TIMER, loadProgress);
 
-			super.playBGM(_startTime, _loops);
+//			super.playBGM(_startTime, _loops);
 		}
 	}
 }

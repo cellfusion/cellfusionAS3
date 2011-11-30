@@ -154,7 +154,7 @@ package jp.cellfusion.sound
 		public function stop():void
 		{
 			if (_state == STATE_STOP) return;
-
+			
 			_state = STATE_STOP;
 
 			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
@@ -167,6 +167,8 @@ package jp.cellfusion.sound
 		public function pause():void
 		{
 			if (_state != STATE_PLAY) return;
+			
+			trace(this, "pause");
 
 			_state = STATE_PAUSE;
 
@@ -182,6 +184,8 @@ package jp.cellfusion.sound
 		public function resume():void
 		{
 			if (_state != STATE_PAUSE) return;
+			
+			trace(this, "resume");
 
 			_state = STATE_PLAY;
 			_channel = _sound.play(_channel.position || 0, _loops, _soundTransform);
