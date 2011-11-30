@@ -124,11 +124,11 @@ package jp.cellfusion.sound
 
 		protected function playBGM(startTime:Number = 0, loops:int = 0):void
 		{
-			if (_state == STATE_PLAY) {
-				return;
-			} else if (_state == STATE_PAUSE) {
-				pause();
-			} else {
+			if (_state == STATE_PLAY) return;
+
+			if (_state == STATE_PAUSE) {
+				resume();
+			} else if (_state == STATE_STOP) {
 				_state = STATE_PLAY;
 				_loops = loops;
 				_channel = _sound.play(startTime, loops, _soundTransform);
@@ -143,9 +143,9 @@ package jp.cellfusion.sound
 			_state = STATE_STOP;
 			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 			_channel = null;
-			
+
 			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_COMPLETE));
-			
+
 			if (_atSoundComplete != null) {
 				_atSoundComplete.apply();
 			}
@@ -166,24 +166,28 @@ package jp.cellfusion.sound
 
 		public function pause():void
 		{
-			if (_state == STATE_PAUSE) {
-				_state = STATE_PLAY;
-				_channel = _sound.play(_channel.position || 0, _loops, _soundTransform);
-				_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+			if (_state != STATE_PLAY) return;
 
-				dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_RESUME));
-			} else if (_state == STATE_STOP) {
-			} else {
-				_state = STATE_PAUSE;
+			_state = STATE_PAUSE;
 
-				_position = _channel.position;
+			_position = _channel.position;
 
-				_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
-				_channel.stop();
-				// _channel = null;
+			_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
+			_channel.stop();
+			// _channel = null;
 
-				dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_PAUSE));
-			}
+			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_PAUSE));
+		}
+
+		public function resume():void
+		{
+			if (_state != STATE_PAUSE) return;
+
+			_state = STATE_PLAY;
+			_channel = _sound.play(_channel.position || 0, _loops, _soundTransform);
+			_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
+
+			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_RESUME));
 		}
 
 		public function seek(position:Number):void
@@ -193,7 +197,7 @@ package jp.cellfusion.sound
 					_channel.stop();
 					_channel.removeEventListener(Event.SOUND_COMPLETE, soundComplete);
 				}
-				
+
 				_channel = _sound.play(position, _loops, _soundTransform);
 				_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
 
@@ -223,7 +227,7 @@ package jp.cellfusion.sound
 
 			dispatchEvent(new SoundObjectEvent(this, SoundObjectEvent.SOUND_VOLUME_CHANGE));
 		}
-		
+
 		public function fade(volume:Number, seconds:Number, easing:Function):void
 		{
 			fadeStart(volume, seconds, easing);
@@ -269,7 +273,7 @@ package jp.cellfusion.sound
 			} catch(error:Error) {
 			}
 		}
-		
+
 		public function destroy():void
 		{
 			if (_channel) {
@@ -299,7 +303,7 @@ package jp.cellfusion.sound
 		{
 			return _isMute;
 		}
-
+		
 		public function get position():Number
 		{
 			return _channel ? _channel.position : 0;

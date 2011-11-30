@@ -142,7 +142,7 @@ package jp.cellfusion.sound
 		{
 			return _isMute;
 		}
-
+		
 		public function get isSolo():Boolean
 		{
 			return _isSolo;

@@ -19,6 +19,8 @@ package jp.cellfusion.sound
 		function fade(volume:Number, seconds:Number, easing:Function):void;
 
 		function pause():void;
+		
+		function resume():void;
 
 		function close():void;
 
@@ -37,7 +39,7 @@ package jp.cellfusion.sound
 		function set volume(value:Number):void;
 
 		function get isMute():Boolean;
-
+		
 		function get isSolo():Boolean;
 
 		function get position():Number;
