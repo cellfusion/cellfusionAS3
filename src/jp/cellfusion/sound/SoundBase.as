@@ -168,8 +168,6 @@ package jp.cellfusion.sound
 		{
 			if (_state != STATE_PLAY) return;
 			
-			trace(this, "pause");
-
 			_state = STATE_PAUSE;
 
 			_position = _channel.position;
@@ -185,8 +183,6 @@ package jp.cellfusion.sound
 		{
 			if (_state != STATE_PAUSE) return;
 			
-			trace(this, "resume");
-
 			_state = STATE_PLAY;
 			_channel = _sound.play(_channel.position || 0, _loops, _soundTransform);
 			_channel.addEventListener(Event.SOUND_COMPLETE, soundComplete);
