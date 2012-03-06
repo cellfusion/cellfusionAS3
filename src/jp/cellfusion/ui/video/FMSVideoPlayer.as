@@ -1,13 +1,4 @@
-package jp.cellfusion.video {
-	import jp.cellfusion.events.VideoEvent;
-	import jp.cellfusion.events.VideoProgressEvent;
-	import jp.cellfusion.sound.ISoundObject;
-	import jp.cellfusion.sound.SoundManager;
-	import jp.cellfusion.sound.VideoSound;
-	import jp.cellfusion.ui.video.IVideoPlayer;
-	import jp.cellfusion.ui.video.ui.IControllerParts;
-	import jp.cellfusion.ui.video.ui.SeekBarBase;
-
+package jp.cellfusion.ui.video {
 	import flash.display.Sprite;
 	import flash.events.AsyncErrorEvent;
 	import flash.events.ErrorEvent;
@@ -21,6 +12,14 @@ package jp.cellfusion.video {
 	import flash.net.NetStream;
 	import flash.net.Responder;
 	import flash.net.URLRequest;
+	import jp.cellfusion.events.VideoEvent;
+	import jp.cellfusion.events.VideoProgressEvent;
+	import jp.cellfusion.sound.ISoundObject;
+	import jp.cellfusion.sound.SoundManager;
+	import jp.cellfusion.sound.VideoSound;
+	import jp.cellfusion.ui.video.ui.IControllerParts;
+	import jp.cellfusion.ui.video.ui.SeekBarBase;
+
 
 
 	/**

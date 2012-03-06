@@ -1,4 +1,4 @@
-package jp.cellfusion.video
+package jp.cellfusion.ui.video.core
 {
 	import flash.events.AsyncErrorEvent;
 	import flash.events.ErrorEvent;
@@ -11,13 +11,13 @@ package jp.cellfusion.video
 	/**
 	 * @author cellfusion
 	 */
-	public class LocalVideoSource
+	public class LocalVideoStream implements IVideoStream
 	{
 		private var _nc:NetConnection;
 		private var _ns:NetStream;
 		private var _metadata:Object;
 
-		public function LocalVideoSource()
+		public function LocalVideoStream()
 		{
 			_nc = new NetConnection();
 			_nc.addEventListener(NetStatusEvent.NET_STATUS, connectionNsStatusHandler);
