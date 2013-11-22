@@ -7,7 +7,9 @@ package jp.cellfusion.utils
 	{
 		static public function format(number:Number):String
 		{
-			var words:Array = String(number).split("").reverse();
+			var numInteger:int = Math.floor(num);
+			
+			var words:Array = String(numInteger).split("").reverse();
 			var l:int = words.length;
 			for ( var i:int = 3; i < l; i += 3 ) {
 				if ( words[i] ) {
@@ -16,7 +18,14 @@ package jp.cellfusion.utils
 					l++;
 				}
 			}
-			return words.reverse().join("");
+
+			var res:String = words.reverse().join("");
+
+			if (num - numInteger > 0) {
+				res = res + "." + num.toString().split(".")[1];
+			}
+
+			return res;
 		}
 
 		static public function digit(number:Number, figure:int):String
@@ -28,12 +37,12 @@ package jp.cellfusion.utils
 			return str.substr(str.length - figure, str.length);
 		}
 
-		public static function decimal(number:Number, figure:int = 1):String
+		public static function decimal(number:Number, figure:uint = 1):String
 		{
-			var tmp:String = "";
-			var num:Array = String(number).split(".");
-			if (!num[1]) num[1] = "0";
-			return num[0] + "." + num[1].substr(0, figure);
+			var numInteger:int = Math.floor(num);
+
+			if (figure == 0) return numInteger.toString();
+			return numInteger + "." + Math.floor((num - numInteger) * Math.pow(10, figure));
 		}
 	}
 }
